@@ -82,7 +82,8 @@ today = soup.find('div', class_="js-todayStreamEntries activity-group columns ma
 # icon의 종류가 달라서 종류에 맞게 정보를 읽어올수있도록
 icon_list = ["bb-ui-icon-grades", "bb-ui-icon-test", "bb-ui-icon-assignment",
              "bb-ui-icon-announcement", "bb-ui-icon-pdf", "bb-ui-icon-video",
-             "bb-ui-icon-document-multiple", "bb-ui-icon-text", "bb-ui-icon-blank"]
+             "bb-ui-icon-document-multiple", "bb-ui-icon-document-text",
+             "bb-ui-icon-document-blank"]
 
 # 제공 예정
 upcoming_feed = []
