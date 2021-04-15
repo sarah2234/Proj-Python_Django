@@ -152,4 +152,3 @@ if element_cards is not None:
     print("\nToday Stream\n")
     for item in today_feed:
         item.show()
-
