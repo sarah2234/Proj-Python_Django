@@ -15,10 +15,10 @@ class Data:
 
     def show(self):
         print("-----------------\n" +
-              "종류: " + self.sort +
-              "\n과목: " + self.context_ellipsis +
-              "\n제목: " + self.name +
-              "\n내용: " + self.content)
+              "종류| " + self.sort +
+              "\n과목| " + self.context_ellipsis +
+              "\n제목| " + self.name +
+              "\n내용| " + self.content)
 
 
 # requests(속도가 빠르다), selenium(동적 웹페이지 수집가능, 쉬운 login)
@@ -47,8 +47,8 @@ driver = webdriver.Chrome(
 
 # 로그인
 driver.get('https://cbnu.blackboard.com/')
-driver.find_element_by_name('uid').send_keys('블랙보드 아이디')
-driver.find_element_by_name('pswd').send_keys('블랙보드 비밀번호')
+driver.find_element_by_name('uid').send_keys('학번')
+driver.find_element_by_name('pswd').send_keys('비밀번호')
 driver.find_element_by_xpath('//*[@id="entry-login"]').click()
 
 # 활동 스트림에서 원하는 정보 받아오기 - div id site-wrap 다음 부분부터는 안 읽히는데 나머지 부분은 동적이라서 값을 못 읽어오는 것 같다.
@@ -61,7 +61,7 @@ driver.get('https://cbnu.blackboard.com/ultra/stream')
 
 # 내가 원하는 element가 load 될때까지 기다리기
 try:
-    element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "activity-feed"))) # 이걸 원하는 내용으로 바꿨더니 로딩이 된다!!!!
+    element = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.CLASS_NAME, "activity-feed"))) # 이걸 원하는 내용으로 바꿨더니 로딩이 된다!!!!
 finally:
     pass
 
@@ -76,40 +76,80 @@ soup = soup.find('div', class_="activity-stream row collapse")
 
 upcoming = soup.find('div', class_="js-upcomingStreamEntries activity-group columns main-column").find('ul', class_="activity-feed")
 # 왜 읽어오지 못하나 했더니 today는 비어있을 때도 있다.
-# today = soup.find('div', class_="js-todayStreamEntries activity-group columns main-column").find('ul', class_="activity-feed")
+today = soup.find('div', class_="js-todayStreamEntries activity-group columns main-column").find('ul', class_="activity-feed")
 # previous = soup.find('div', class_="js-previousStreamEntries activity-group columns main-column")
 
+# icon의 종류가 달라서 종류에 맞게 정보를 읽어올수있도록
+icon_list = ["bb-ui-icon-grades", "bb-ui-icon-test", "bb-ui-icon-assignment",
+             "bb-ui-icon-announcement", "bb-ui-icon-pdf", "bb-ui-icon-video",
+             "bb-ui-icon-document-multiple", "bb-ui-icon-text", "bb-ui-icon-blank"]
+
+# 제공 예정
 upcoming_feed = []
 element_cards = upcoming.find_all(class_='element-card')
+if element_cards is not None:
+    for element_card in element_cards:
 
-for element_card in element_cards:
-    sort = element_card.find('bb-ui-content-icon').select_one('bb-ui-icon-assignment').attrs.get('title-access')
-    details = element_card.find('div', class_="element-details")
-    context_ellipsis = details.find('div', class_="context ellipsis").text.strip()
-    name = details.find('div', class_="name").text.strip()
-    content = details.find('div', class_="content").text.strip()
-#   due_date = details.find('div', class_="due-date").text.strip()
-#   summary = details.find('div', class_="content").text.strip()
-    upcoming_feed.append(Data(sort, context_ellipsis, name, content))
+        # sort - 종류(과제, 공지, 성적..)
+        sort = "찾을 수 없음"
+        for icon in icon_list:
+            find_result = element_card.find(icon)
+            if find_result is not None:
+                sort = find_result.attrs.get('title-access')
 
-print("Upcoming Stream\n")
-for item in upcoming_feed:
-    item.show()
+        details = element_card.find('div', class_="element-details")
+        context_ellipsis = details.find('div', class_="context ellipsis").text.strip()
+        name = details.find('div', class_="name").text.strip()
 
-# today_feed = []
-# element_cards = today.find_all(class_='element-card')
-#
-# for element_card in element_cards:
-#     sort = element_card.find('bb-ui-content-icon').select_one('bb-ui-icon-assignment').attrs.get('title-access')
-#     details = element_card.find('div', class_="element-details")
-#     context_ellipsis = details.find('div', class_="context ellipsis").text.strip()
-#     name = details.find('div', class_="name").text.strip()
-#     content = details.find('div', class_="content").text.strip()
-# #   due_date = details.find('div', class_="due-date").text.strip()
-# #   summary = details.find('div', class_="content").text.strip()
-#     upcoming_feed.append(Data(sort, context_ellipsis, name, content))
-#
-# print("\nToday Stream\n")
-# for item in today_feed:
-#     item.show()
+        # content - 성적 출력 최적화
+        IsItGrade = element_card.find("bb-ui-icon-grades")
+        if IsItGrade is not None:
+            contents = details.find('div', class_="content").text.strip().split()
+            if contents != []:
+                content = "".join(["내 성적 - ", contents[3], contents[4]])
+        else:
+            content = details.find('div', class_="content").text.strip()
+
+#       due_date = details.find('div', class_="due-date").text.strip()
+#       summary = details.find('div', class_="content").text.strip()
+        upcoming_feed.append(Data(sort, context_ellipsis, name, content))
+
+    print("Upcoming Stream\n")
+    for item in upcoming_feed:
+        item.show()
+
+
+# 오늘
+today_feed = []
+element_cards = today.find_all(class_='element-card')
+if element_cards is not None:
+    for element_card in element_cards:
+
+        # sort - 종류(과제, 공지, 성적..)
+        sort = "찾을 수 없음"
+        for icon in icon_list:
+            find_result = element_card.find(icon)
+            if find_result is not None:
+                sort = find_result.attrs.get('title-access')
+
+        details = element_card.find('div', class_="element-details")
+        context_ellipsis = details.find('div', class_="context ellipsis").text.strip()
+        name = details.find('div', class_="name").text.strip()
+
+        # content - 성적 출력 최적화
+        IsItGrade = element_card.find("bb-ui-icon-grades")
+        if IsItGrade is not None:
+            contents = details.find('div', class_="content").text.strip().split()
+            if contents != []:
+                content = "".join(["내 성적 - ", contents[3], contents[4]])
+        else:
+            content = details.find('div', class_="content").text.strip()
+
+#       due_date = details.find('div', class_="due-date").text.strip()
+#       summary = details.find('div', class_="content").text.strip()
+        today_feed.append(Data(sort, context_ellipsis, name, content))
+
+    print("\nToday Stream\n")
+    for item in today_feed:
+        item.show()
 
