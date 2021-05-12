@@ -1,0 +1,4 @@
+블랙보드에서 과목을 클릭하였을 때 새로운 페이지로 이동하는 것이 아닌 'iframe' 기능을 사용하여 현재 브라우저에 렌더링되고 있는 문사 안에 또 다른 HTML 페이지를 삽입하였다.
+따라서 여태 해왔던 방식으로는 과목 내 공지 사항에 접근할 수 없고, 코드를 다음과 같이 추가하여 elements에 접근한다.
+driver.switch_to.frame(iframe의 id나 name (블랙보드에서는 'classic-learn-iframe') #필수 사항
+soup_iframe=bs(driver.page_source, 'html.parser') #선택 사항
