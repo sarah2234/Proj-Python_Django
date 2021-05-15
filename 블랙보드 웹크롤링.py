@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Apr  8 02:36:03 2021
-
 @author: chisanahn
 """
 
@@ -39,16 +38,16 @@ options.add_argument('--incognito')
 options.add_argument('--headless')
 
 # chrome driver를 불러오고 위의 option을 적용시킴
-driver = webdriver.Chrome(
-    '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe',
-    chrome_options=options)
+driver = webdriver.Chrome() #본인 컴퓨터에서 chromedrive가 있는 경로 입력
+# 입력예시
 # driver = webdriver.Chrome(
-#     '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe')
+#    '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe',
+#    chrome_options=options)
 
 # 로그인
 driver.get('https://cbnu.blackboard.com/')
-driver.find_element_by_name('uid').send_keys('학번')
-driver.find_element_by_name('pswd').send_keys('비밀번호')
+driver.find_element_by_name('uid').send_keys('') #학번 작성
+driver.find_element_by_name('pswd').send_keys('') #Blackboard 비밀번호 작성
 driver.find_element_by_xpath('//*[@id="entry-login"]').click()
 
 # 활동 스트림에서 원하는 정보 받아오기 - div id site-wrap 다음 부분부터는 안 읽히는데 나머지 부분은 동적이라서 값을 못 읽어오는 것 같다.
@@ -79,12 +78,6 @@ upcoming = soup.find('div', class_="js-upcomingStreamEntries activity-group colu
 today = soup.find('div', class_="js-todayStreamEntries activity-group columns main-column").find('ul', class_="activity-feed")
 # previous = soup.find('div', class_="js-previousStreamEntries activity-group columns main-column")
 
-# icon의 종류가 달라서 종류에 맞게 정보를 읽어올수있도록
-icon_list = ["bb-ui-icon-grades", "bb-ui-icon-test", "bb-ui-icon-assignment",
-             "bb-ui-icon-announcement", "bb-ui-icon-pdf", "bb-ui-icon-video",
-             "bb-ui-icon-document-multiple", "bb-ui-icon-document-text",
-             "bb-ui-icon-document-blank"]
-
 # 제공 예정
 upcoming_feed = []
 element_cards = upcoming.find_all(class_='element-card')
@@ -93,10 +86,9 @@ if element_cards is not None:
 
         # sort - 종류(과제, 공지, 성적..)
         sort = "찾을 수 없음"
-        for icon in icon_list:
-            find_result = element_card.find(icon)
-            if find_result is not None:
-                sort = find_result.attrs.get('title-access')
+        find_result = element_card.find('svg')
+        if find_result is not None:
+            sort = find_result.attrs.get('aria-label')
 
         details = element_card.find('div', class_="element-details")
         context_ellipsis = details.find('div', class_="context ellipsis").text.strip()
@@ -128,10 +120,9 @@ if element_cards is not None:
 
         # sort - 종류(과제, 공지, 성적..)
         sort = "찾을 수 없음"
-        for icon in icon_list:
-            find_result = element_card.find(icon)
-            if find_result is not None:
-                sort = find_result.attrs.get('title-access')
+        find_result = element_card.find('svg')
+        if find_result is not None:
+                sort = find_result.attrs.get('aria-label')
 
         details = element_card.find('div', class_="element-details")
         context_ellipsis = details.find('div', class_="context ellipsis").text.strip()
