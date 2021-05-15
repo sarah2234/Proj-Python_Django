@@ -39,8 +39,10 @@ options.add_argument('--headless')
 
 # chrome driver를 불러오고 위의 option을 적용시킴
 driver = webdriver.Chrome() #본인 컴퓨터에서 chromedrive가 있는 경로 입력
+# 입력예시
 # driver = webdriver.Chrome(
-#     '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe')
+#    '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe',
+#    chrome_options=options)
 
 # 로그인
 driver.get('https://cbnu.blackboard.com/')
