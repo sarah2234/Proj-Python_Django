@@ -73,74 +73,76 @@ soup = bs(driver.page_source, 'html.parser')
 
 soup = soup.find('div', class_="activity-stream row collapse")
 
-upcoming = soup.find('div', class_="js-upcomingStreamEntries activity-group columns main-column").find('ul', class_="activity-feed")
+upcoming = soup.find('div', class_="js-upcomingStreamEntries activity-group columns main-column")
 # 왜 읽어오지 못하나 했더니 today는 비어있을 때도 있다.
-today = soup.find('div', class_="js-todayStreamEntries activity-group columns main-column").find('ul', class_="activity-feed")
+today = soup.find('div', class_="js-todayStreamEntries activity-group columns main-column")
 # previous = soup.find('div', class_="js-previousStreamEntries activity-group columns main-column")
 
 # 제공 예정
-upcoming_feed = []
-element_cards = upcoming.find_all(class_='element-card')
-if element_cards is not None:
-    for element_card in element_cards:
+if upcoming != None:
+    upcoming_feed = []
+    element_cards = upcoming.find('ul', class_="activity-feed").find_all(class_='element-card')
+    if element_cards is not None:
+        for element_card in element_cards:
 
-        # sort - 종류(과제, 공지, 성적..)
-        sort = "찾을 수 없음"
-        find_result = element_card.find('svg')
-        if find_result is not None:
-            sort = find_result.attrs.get('aria-label')
+            # sort - 종류(과제, 공지, 성적..)
+            sort = "찾을 수 없음"
+            find_result = element_card.find('svg')
+            if find_result is not None:
+                sort = find_result.attrs.get('aria-label')
 
-        details = element_card.find('div', class_="element-details")
-        context_ellipsis = details.find('div', class_="context ellipsis").text.strip()
-        name = details.find('div', class_="name").text.strip()
+            details = element_card.find('div', class_="element-details")
+            context_ellipsis = details.find('div', class_="context ellipsis").text.strip()
+            name = details.find('div', class_="name").text.strip()
 
-        # content - 성적 출력 최적화
-        IsItGrade = element_card.find("bb-ui-icon-grades")
-        if IsItGrade is not None:
-            contents = details.find('div', class_="content").text.strip().split()
-            if contents != []:
-                content = "".join(["내 성적 - ", contents[3], contents[4]])
-        else:
-            content = details.find('div', class_="content").text.strip()
+            # content - 성적 출력 최적화
+            IsItGrade = element_card.find("bb-ui-icon-grades")
+            if IsItGrade is not None:
+                contents = details.find('div', class_="content").text.strip().split()
+                if contents != []:
+                    content = "".join(["내 성적 - ", contents[3], contents[4]])
+            else:
+                content = details.find('div', class_="content").text.strip()
 
-#       due_date = details.find('div', class_="due-date").text.strip()
-#       summary = details.find('div', class_="content").text.strip()
-        upcoming_feed.append(Data(sort, context_ellipsis, name, content))
+    #       due_date = details.find('div', class_="due-date").text.strip()
+    #       summary = details.find('div', class_="content").text.strip()
+            upcoming_feed.append(Data(sort, context_ellipsis, name, content))
 
-    print("Upcoming Stream\n")
-    for item in upcoming_feed:
-        item.show()
+        print("Upcoming Stream\n")
+        for item in upcoming_feed:
+            item.show()
 
 
 # 오늘
-today_feed = []
-element_cards = today.find_all(class_='element-card')
-if element_cards is not None:
-    for element_card in element_cards:
+if today != None:
+    today_feed = []
+    element_cards = today.find('ul', class_="activity-feed").find_all(class_='element-card')
+    if element_cards is not None:
+        for element_card in element_cards:
 
-        # sort - 종류(과제, 공지, 성적..)
-        sort = "찾을 수 없음"
-        find_result = element_card.find('svg')
-        if find_result is not None:
-                sort = find_result.attrs.get('aria-label')
+            # sort - 종류(과제, 공지, 성적..)
+            sort = "찾을 수 없음"
+            find_result = element_card.find('svg')
+            if find_result is not None:
+                    sort = find_result.attrs.get('aria-label')
 
-        details = element_card.find('div', class_="element-details")
-        context_ellipsis = details.find('div', class_="context ellipsis").text.strip()
-        name = details.find('div', class_="name").text.strip()
+            details = element_card.find('div', class_="element-details")
+            context_ellipsis = details.find('div', class_="context ellipsis").text.strip()
+            name = details.find('div', class_="name").text.strip()
 
-        # content - 성적 출력 최적화
-        IsItGrade = element_card.find("bb-ui-icon-grades")
-        if IsItGrade is not None:
-            contents = details.find('div', class_="content").text.strip().split()
-            if contents != []:
-                content = "".join(["내 성적 - ", contents[3], contents[4]])
-        else:
-            content = details.find('div', class_="content").text.strip()
+            # content - 성적 출력 최적화
+            IsItGrade = element_card.find("bb-ui-icon-grades")
+            if IsItGrade is not None:
+                contents = details.find('div', class_="content").text.strip().split()
+                if contents != []:
+                    content = "".join(["내 성적 - ", contents[3], contents[4]])
+            else:
+                content = details.find('div', class_="content").text.strip()
 
-#       due_date = details.find('div', class_="due-date").text.strip()
-#       summary = details.find('div', class_="content").text.strip()
-        today_feed.append(Data(sort, context_ellipsis, name, content))
+    #       due_date = details.find('div', class_="due-date").text.strip()
+    #       summary = details.find('div', class_="content").text.strip()
+            today_feed.append(Data(sort, context_ellipsis, name, content))
 
-    print("\nToday Stream\n")
-    for item in today_feed:
-        item.show()
+        print("\nToday Stream\n")
+        for item in today_feed:
+            item.show()
