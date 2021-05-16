@@ -19,7 +19,7 @@ from django.shortcuts import render, redirect
 from datetime import datetime
 import calendar
 
-from .models import Data
+from .models import Data, TimeTable
 import re
 
 # 창 띄우지 않는 설정. background에서 동작.
@@ -49,16 +49,41 @@ def table(request):
 
 
 def list_schedule(request):
-    data_list = Data.objects.filter(sort='과제')
     now = datetime.now()
-    date = datetime.today().weekday()
-    context = {'data_list': data_list, 'now': now, 'date': date_list[date]}
+    date = date_list[datetime.today().weekday()]
+
+    data_list = Data.objects.filter(sort='과제')
+    today_data = Data.objects.filter(sort='과제', year=now.year, month=now.month, day=now.day)
+
+    # 오늘 날짜 시간표 불러오기
+    today_class = TimeTable.objects.filter(date=date)
+    context = {'data_list': data_list, 'now': now, 'date': date,
+               'today_data': today_data, 'today_class': today_class}
     return render(request, 'time_table/list_schedule.html', context)
 
 
 def weekly_schedule(request):
-    data_list = Data.objects.order_by('context_ellipsis')
-    context = {'data_list': data_list}
+    # 예시 데이터셋
+    # TimeTable(prof='강재구', subject='오픈소스', date='목', start_h='13', end_h='15').save()
+    # TimeTable(prof='노서영', subject='선형대수학', date='수', start_h='09', end_h='11').save()
+
+    # 시간표에 들어갈 시간들
+    time_list = ["09", "10", "11", "12", "13", "14", "15", "16", "17"]
+    weekday = ['월', '화', '수', '목', '금']
+    # 시간별로 묶어서 저장
+    time_table = []
+    for time in time_list:
+        # 요일별로 묶어서 저장
+        sametime = []
+        for date in weekday:
+            temp = TimeTable.objects.filter(start_h__lte=int(time), end_h__gte=int(time), date=date)
+            if temp:
+                sametime.append(temp)
+            else:
+                sametime.append('empty')
+        time_table.append({time: sametime})  # 시간이랑 요일별로 묶어서 저장한거 딕셔너리로 함께 저장
+    context = {'time_table': time_table}
+
     return render(request, 'time_table/weekly_schedule.html', context)
 
 
