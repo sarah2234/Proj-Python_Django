@@ -1,0 +1,55 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'list_schedule.css' %}">
+<!--구글 폰트 적용-->
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300&display=swap" rel="stylesheet">
+<style>
+    * {
+        font-family: 'Titillium Web', sans-serif;
+    }
+</style>
+
+<div class="container py-7">
+  <h2 class="text-uppercase text-letter-spacing-xs my-0 text-primary font-weight-bold">Today</h2>
+  <p class="text-sm text-dark mt-0 mb-5">오늘 해야되는거</p>
+  <!-- Days -->
+  <div class="row">
+    <div class="col-lg-4 mb-3" id="Friday, Nov 13th">
+      <h4 class="mt-0 mb-3 text-dark op-8 font-weight-bold">
+        {{now.month}}월 {{now.day}}일 {{date}}요일 {{now.hour}}시
+      </h4>
+<!--      오늘의 시간표 추가-->
+<!--      오늘까지인 과제랑 오늘 수업, 일정 표시-->
+<!--      과제 DB랑 수업 DB에서 오늘 날짜에 해당하는 것들만 뽑아서 시간 순으로 재정렬해서 context로 전달-->
+      {% if data_list %}
+      <ul class="list-timeline list-timeline-primary">
+        {% for data in data_list %}
+        <li class="list-timeline-item p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column">
+          <p class="my-0 text-dark flex-fw text-sm text-uppercase"><span class="text-inverse op-8">{{ now.hour|add:forloop.counter|add:-1 }}:00 - {{ now.hour|add:forloop.counter }}:00</span> - {{ data.context_ellipsis }} 과제</p>
+        </li>
+        {% endfor %}
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+  <h2 class="text-uppercase text-letter-spacing-xs my-0 text-primary font-weight-bold">Upcoming</h2>
+  <p class="text-sm text-dark mt-0 mb-5">앞으로 해야되는거</p>
+<!--   과제 DB에서 출력 -->
+<!--   추후에 같은 날짜에 있는 과제들은 묶어서 출력하도록 수정할 것-->
+  {% if data_list %}
+  <div class="row">
+    {% for assignment in data_list %}
+    <div class="col-lg-4 mb-3" id="Friday, Nov 13th">
+      <h3 class="mt-0 mb-3 text-dark op-8 font-weight-bold">
+        {{assignment.month}}월 {{assignment.day}}일 {{assignment.date}}요일
+      </h3>
+      <ul class="list-timeline list-timeline-primary">
+        <li class="list-timeline-item p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column">
+          <p class="my-0 text-dark flex-fw text-sm text-uppercase"><span class="text-inverse op-8">{{ assignment.hour }}:{{ assignment.minute }}까지 제출</span> - {{ assignment.context_ellipsis }} 과제</p>
+        </li>
+      </ul>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>

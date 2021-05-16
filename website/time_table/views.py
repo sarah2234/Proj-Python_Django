@@ -1,6 +1,3 @@
-from django.shortcuts import render
-
-# Create your views here.
 # requests(속도가 빠르다), selenium(동적 웹페이지 수집가능, 쉬운 login)
 # import requests
 from selenium import webdriver
@@ -12,16 +9,18 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 import os
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "websaver.settings")
 import django
+
 django.setup()
 
 from django.shortcuts import render, redirect
+from datetime import datetime
+import calendar
 
-from . models import Data
-
-
-
+from .models import Data
+import re
 
 # 창 띄우지 않는 설정. background에서 동작.
 options = webdriver.ChromeOptions()
@@ -33,8 +32,11 @@ options.add_argument('--headless')
 # driver = webdriver.Chrome()  # 본인 컴퓨터에서 chromedrive가 있는 경로 입력
 # 입력예시
 driver = webdriver.Chrome(
-   '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe',
-   chrome_options=options)
+    '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe',
+    chrome_options=options)
+
+
+date_list = ['월', '화', '수', '목', '금', '토', '일']
 
 
 def table(request):
@@ -43,12 +45,26 @@ def table(request):
     """
     data_list = Data.objects.order_by('context_ellipsis')
     context = {'data_list': data_list}
-    return render(request, 'time_table/data_list.html', context)
+    return render(request, 'time_table/load_data.html', context)
+
+
+def list_schedule(request):
+    data_list = Data.objects.filter(sort='과제')
+    now = datetime.now()
+    date = datetime.today().weekday()
+    context = {'data_list': data_list, 'now': now, 'date': date_list[date]}
+    return render(request, 'time_table/list_schedule.html', context)
+
+
+def weekly_schedule(request):
+    data_list = Data.objects.order_by('context_ellipsis')
+    context = {'data_list': data_list}
+    return render(request, 'time_table/weekly_schedule.html', context)
 
 
 def crawling(request):
     if request.method == "GET":
-        return render(request, 'data_list.html')
+        return render(request, 'load_data.html')
     elif request.method == "POST":
         # 로그인
         driver.get('https://cbnu.blackboard.com/')
@@ -82,7 +98,7 @@ def crawling(request):
         # Data 클래스 하나에 upcoming, today, previous 구분 없이 저장. 추후에 필요시 구분해서 저장하도록 수정할 것.
 
         # 제공 예정
-        if upcoming != None:
+        if upcoming is not None:
             element_cards = upcoming.find('ul', class_="activity-feed").find_all(class_='element-card')
             if element_cards is not None:
                 for element_card in element_cards:
@@ -97,12 +113,25 @@ def crawling(request):
                     context_ellipsis = details.find('div', class_="context ellipsis").text.strip()
                     name = details.find('div', class_="name").text.strip()
 
-                    # content - 성적 출력 최적화
+                    # content - 성적 입력 최적화
                     IsItGrade = element_card.find("bb-ui-icon-grades")
                     if IsItGrade is not None:
                         contents = details.find('div', class_="content").text.strip().split()
-                        if contents != []:
+                        if contents:
                             content = "".join(["내 성적 - ", contents[3], contents[4]])
+                    # 과제일 경우 마감 기한 입력 최적화
+                    elif sort == '과제':
+                        content = details.find('div', class_="content").text.strip()
+                        contents = re.split(': |. ', content)
+                        if contents:
+                            year = "".join(["20", contents[1]])
+                            month = contents[2]
+                            day = contents[3]
+                            date = date_list[calendar.weekday(int("".join(["20", contents[1]])),
+                                                              int(contents[2]), int(contents[3]))]
+                            time = contents[4].split(':')
+                            hour = time[0]
+                            minute = time[1]
                     else:
                         content = details.find('div', class_="content").text.strip()
 
@@ -113,10 +142,11 @@ def crawling(request):
                     if Data.objects.filter(sort=sort, context_ellipsis=context_ellipsis, name=name,
                                            content=content).count() == 0:
                         Data(sort=sort, context_ellipsis=context_ellipsis, name=name,
-                             content=content).save()
+                             content=content, year=year, month=month, day=day,
+                             date=date, hour=hour, minute=minute).save()
 
         # 오늘
-        if today != None:
+        if today is not None:
             element_cards = today.find('ul', class_="activity-feed").find_all(class_='element-card')
             if element_cards is not None:
                 for element_card in element_cards:
@@ -135,18 +165,32 @@ def crawling(request):
                     IsItGrade = element_card.find("bb-ui-icon-grades")
                     if IsItGrade is not None:
                         contents = details.find('div', class_="content").text.strip().split()
-                        if contents != []:
+                        if contents:
                             content = "".join(["내 성적 - ", contents[3], contents[4]])
-                    else:
-                        content = details.find('div', class_="content").text.strip()
+                            # 과제일 경우 마감 기한 입력 최적화
+                        elif sort == '과제':
+                            content = details.find('div', class_="content").text.strip()
+                            contents = re.split(': |. ', content)
+                            if contents:
+                                year = "".join(["20", contents[1]])
+                                month = contents[2]
+                                day = contents[3]
+                                date = date_list[calendar.weekday(int("".join(["20", contents[1]])),
+                                                                  int(contents[2]), int(contents[3]))]
+                                time = contents[4].split(':')
+                                hour = time[0]
+                                minute = time[1]
+                        else:
+                            content = details.find('div', class_="content").text.strip()
 
-                    #       due_date = details.find('div', class_="due-date").text.strip()
-                    #       summary = details.find('div', class_="content").text.strip()
+                        #       due_date = details.find('div', class_="due-date").text.strip()
+                        #       summary = details.find('div', class_="content").text.strip()
 
-                    # 중복된 데이터는 DB에 저장하지 않는다.
-                    if Data.objects.filter(sort=sort, context_ellipsis=context_ellipsis, name=name,
-                                           content=content).count() == 0:
-                        Data(sort=sort, context_ellipsis=context_ellipsis, name=name,
-                             content=content).save()
+                        # 중복된 데이터는 DB에 저장하지 않는다.
+                        if Data.objects.filter(sort=sort, context_ellipsis=context_ellipsis, name=name,
+                                               content=content).count() == 0:
+                            Data(sort=sort, context_ellipsis=context_ellipsis, name=name,
+                                 content=content, year=year, month=month, day=day,
+                                 date=date, hour=hour, minute=minute).save()
 
     return redirect('time_table:table')
