@@ -27,8 +27,17 @@ driver = webdriver.Chrome('/Users/이승현/chromedriver/chromedriver') #본인 
 # driver = webdriver.Chrome(
 #     '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe')
 
-course_list={} #현재 수강 중인 과목의 이름과 교수님 목록
-schedule_list={} #현재 수강 중인 과목의 이름과 시간 목록
+course_list={} #현재 수강 중인 과목의 이름과 교수님 목록 (과목명:교수님 형태)
+schedule_list={} #현재 수강 중인 과목의 이름과 시간 목록 (과목명:(요일과 시간 구분x)시간 형태)
+schedule_list_ver2={} #현재 수강 중인 과목의 이름과 시간 목록 (과목명:(요일과 시간이 리스트 형태로 구분)시간 형태) // 만일을 위하여 구현함
+week=[] #일주일 강의 시간 목록
+        #[['월', ['08,09']], ['수', ['03']]]
+        #[['금', ['01,02,03']], ['', []]]과 같은 형태로 출력됨. (*숫자는 int형이 아닌 str형!)
+
+course_name_for_DB=[] #DB를 위한 교과목명          Q!: class로 배열을 만들어서 값을 대입하나?
+professor_for_DB=[] #DB를 위한 교수명 리스트
+#week는 어떻게 처리해야하지?
+
 
 def get_subject_name():  # CIEAT의 마이페이지에서 과목명 가져오기
     driver.get('https://cieat.chungbuk.ac.kr/clientMain/a/t/main.do')  # 씨앗 주소
@@ -44,8 +53,13 @@ def get_subject_name():  # CIEAT의 마이페이지에서 과목명 가져오기
         driver.find_element_by_name('userId').send_keys('')  # 학번 작성
         driver.find_element_by_name('userPw').send_keys('')  # 비밀번호 작성
         driver.find_element_by_class_name('btn_login_submit').click()
-    except UnexpectedAlertPresentException:
-        #except 처리를 했음에도 불구하고 프로그램이 멈추는 이유는?
+        try:
+            element = WebDriverWait(driver, 20).until(
+                EC.presence_of_element_located((By.ID, 'loginForm')))
+        finally:
+            pass
+    except UnexpectedAlertPresentException: #유저 정보 오기입
+        print("학번과 비밀번호를 확인해주십시오.")
         return
 
     driver.get('https://cieat.chungbuk.ac.kr/mileageHis/a/m/goMileageHisList.do')  # 마이페이지 주소
@@ -62,7 +76,9 @@ def get_subject_name():  # CIEAT의 마이페이지에서 과목명 가져오기
         lecture = value.find_elements_by_tag_name('td')[3]  # 과목명 (rows의 3번째 열에 해당)
         professor = value.find_elements_by_tag_name('td')[5]  # 교수님 (rows의 5번째 열에 해당)
         course_list[lecture.text.strip()] = professor.text.strip()  # course_list에 '과목명: 교수님' 추가
-        # print(index, lecture.text.strip(),course_list[lecture.text.strip()])
+
+        course_name_for_DB.append(lecture.text.strip()) #DB용 교과목명 목록 구축
+        professor_for_DB.append(professor.text.strip()) #DB용 교수님 성함 목록 구축
 
 
 def get_schedule(CIEAT_course_list): #개신누리에서 엑셀 파일 다운 받아서 전체 강좌의 시간표 확인
@@ -117,20 +133,35 @@ def get_schedule(CIEAT_course_list): #개신누리에서 엑셀 파일 다운 �
                 break
             elif 1 <= choose_lecture_num and choose_lecture_num <= len(list_from_result):
                 lecture_time=list_from_result[choose_lecture_num-1][2] #lecture_time: 찾은 과목의 시간을 저장
-                schedule_list[lecture_name]=lecture_time #스케줄 딕셔너리에 과목명:시간 형태로 입력
+                schedule_list[lecture_name]=lecture_time #스케줄 딕셔너리에 과목명:(요일과 시간 구분x)시간 형태로 입력
                 break
             else:
                 print("순번에 맞게 입력해주세요.")
 
 
+def schedule_of_week(): #수강하는 과목을 요일과 n교시로 나누어 리스트에 저장
+    for lecture_name, lecture_time in schedule_list.items():
+        number_of_lecture=lecture_time.split('  ') #공백이 최소 2번 이상 나온 후 다른 요일의 수업 표시하므로 split
+
+        number_of_lecture[0]=number_of_lecture[0].replace(' ','')
+        day_of_first_lecture=number_of_lecture[0][0] #첫 번째 강의의 요일 가져오기
+        time_of_first_lecture=number_of_lecture[0][1:] #첫 번째 강의의 시간 리스트 가져오기
+        each_time_of_first_lecture=time_of_first_lecture.split(' ,') #첫 번째 강의의 시간 개별로 가져오기
+
+        try: #수업을 1주일에 한 번만 하는 경우 대비
+            number_of_lecture[1]=number_of_lecture[1].replace(' ','')
+            day_of_second_lecture = number_of_lecture[1][0]  # 두 번째 강의의 요일 가져오기
+            time_of_second_lecture = number_of_lecture[1][1:]  # 두 번째 강의의 시간 리스트 가져오기
+            each_time_of_second_lecture = time_of_second_lecture.split(' ,')  # 두 번째 강의의 시간 개별로 가져오기
+        except IndexError:
+            day_of_second_lecture=''
+            each_time_of_second_lecture=[]
+
+        modified_lecture_time=[[day_of_first_lecture,each_time_of_first_lecture],[day_of_second_lecture,each_time_of_second_lecture]] #[[첫 번째 요일,[시간1,시간2,...]],[두 번째 요일,[시간1,시간2,...]]]
+        week.append(modified_lecture_time) #week에 상단 리스트 형태로 삽입
+
+        schedule_list_ver2[lecture_name]=modified_lecture_time #schedule_list_ver2는 schedule_list와 달리 요일과 시간이 구분되어있음
+
 get_subject_name()
 get_schedule(course_list)
-print(schedule_list)
-
-
-
-
-
-
-
-
+schedule_of_week()
