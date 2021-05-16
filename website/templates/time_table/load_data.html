@@ -1,0 +1,41 @@
+{% if data_list %}
+<!--  <ul>-->
+<!--    {% for data in data_list %}-->
+<!--    <li>{{ data.context_ellipsis }} {{ data.sort }}</li>-->
+<!--    {% endfor %}-->
+<!--  </ul>-->
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>종류</th><th>과목</th><th>제목</th><th>내용</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for data in data_list %}
+    <tr>
+      <td>{{ data.sort }} </td>
+      <td>| {{ data.context_ellipsis }} </td>
+      <td>| {{ data.name }} </td>
+      <td>| {{ data.content }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+<p> You are free! 해야할 일이 없습니다!</p>
+{% endif %}
+
+<form method="post" action="{% url 'time_table:crawling' %}">
+  {% csrf_token %}
+  <div class="form-group">
+    <label for="username">학번</label>
+    <input type="text" class="form-control" name="uid" id="uid"
+           value="{{ form.username.value|default_if_none:'' }}">
+  </div>
+  <div class="form-group">
+    <label for="password">비밀번호</label>
+    <input type="password" class="form-control" name="pswd" id="pswd"
+           value="{{ form.password.value|default_if_none:'' }}">
+  </div>
+  <button type="submit">공지사항 읽어오기</button>
+</form>
