@@ -31,7 +31,7 @@ def get_schedule(): #개신누리에서 엑셀 파일 다운 받아서 전체 �
                                 nrows=3668) #총 읽어올 열의 개수
 
     lectures_time=lectures_info.loc[:,['과목명','담당교수','수업시간']] #loc으로 엑셀에서 '과목명', '담당교수', '수업시간'의 열만 추출, 앞의 :는 행 부분 / .iloc[index] 방법도 존재
-    # print(lectures_time) #전체 강의 목록 (테스트용으로 전체 강의 목록을 출력할 때는 nrows의 수를 줄여서 할 것)
+    # print(lectures_time) #전체 강의 목록 (테스트용으로 강의 목록을 출력할 때는 nrows의 수를 줄여서 할 것)
 
     input_subject=input("과목이름 입력 >> ") #추후 씨앗의 마이페이지로 과목명 입력 없이 할 것
     searching_lecture=lectures_time[lectures_time['과목명']==input_subject] #입력받은 과목명과 일치하는 행 선별, lectures_time[]으로 유효한 값을 가지는 행만 추출
@@ -43,11 +43,12 @@ def get_schedule(): #개신누리에서 엑셀 파일 다운 받아서 전체 �
         print("해당 과목명과 일치하는 수업이 존재하지 않습니다.")
     else:
         for index in range(len(list_from_result)):
-            time,room,bracket=list_from_result[index][1].split("[") #엑셀 데이터의 시간표는 '시간+[강의실]'로 되어있음
+            time,room=list_from_result[index][1].split("[") #엑셀 데이터의 시간표는 '시간+[강의실]'로 되어있음
+            room,bracket=room.split("]")
             del list_from_result[index][1] #del 키워드: 인덱스로 리스트 요소 삭제 / list의 remove 메소드: 값에 의한 리스트 요소 삭제, 존재하지 않으면 ValueError
             list_from_result[index].append(time) #append: 리스트의 끝에 삽입 / insert(index,value) / extend([list])
             list_from_result[index].append(room)
-            print(index+1,":",list_from_result[index][0],"교수님 -",list_from_result[index][2])
+            print(index+1,":",list_from_result[index][0],"교수님 -",list_from_result[index][1])
         print()
 
         while(True):
@@ -64,7 +65,7 @@ def get_schedule(): #개신누리에서 엑셀 파일 다운 받아서 전체 �
 
 
 
-get_schedule()
+#get_schedule()
 
 # chrome driver를 불러오고 위의 option을 적용시킴
 driver = webdriver.Chrome('/Users/이승현/chromedriver/chromedriver') #본인 컴퓨터에서 chromedrive가 있는 경로 입력
@@ -72,31 +73,32 @@ driver = webdriver.Chrome('/Users/이승현/chromedriver/chromedriver') #본인 
 #     '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe')
 
 def get_subject_name(): #CIEAT의 마이페이지에서 과목명 가져오기
+    driver.get('https://cieat.chungbuk.ac.kr/mileageHis/a/m/goMileageHisList.do') #마이페이지 주소
     try:
         element = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.LINK_TEXT, '교과 이수 현황'))) #마이페이지 내 교과 이수 현황
+            EC.presence_of_element_located((By.XPATH, '//*[@id="mileageRcrHistList"]/div'))) #마이페이지 내 교과 이수 현황
     finally:
         pass
-    course_list=[]
-    driver.find_element_by_class_name('section_sarea tbl tbl_col scrollx_tbl_md').find_element_by_tag_name('tbody')
+    course_list={}
+    tbody=driver.find_element_by_xpath('//*[@id="mileageRcrHistList"]/div').find_element_by_tag_name('tbody') #교과 이수 현황 테이블
+    rows=tbody.find_elements_by_tag_name('tr') #행 별로 저장
+    for index, value in enumerate(rows):
+        lecture=value.find_elements_by_tag_name('td')[3] #과목명 (rows의 3번째 열에 해당)
+        professor=value.find_elements_by_tag_name('td')[5] #교수님 (rows의 5번째 열에 해당)
+        course_list[lecture.text.strip()]=professor.text.strip() #course_list에 '과목명: 교수님' 추가
+        #print(index, lecture.text.strip(),course_list[lecture.text.strip()])
 
-# 로그인
-driver.get('https://cieat.chungbuk.ac.kr/clientMain/a/t/main.do')
+
+driver.get('https://cieat.chungbuk.ac.kr/clientMain/a/t/main.do') #씨앗 주소
 driver.find_element_by_class_name('btn_login').click() #CIEAT 로그인 버튼
 try:
     element = WebDriverWait(driver, 20).until(
         EC.presence_of_element_located((By.ID, 'loginForm')))
 finally:
     pass
-#driver.find_element_by_name('userId').send_keys('') #학번 작성
-#driver.find_element_by_name('userPw').send_keys('') #비밀번호 작성
-#driver.find_element_by_class_name('btn_login_submit').click()
 
-try:
-    element = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.LINK_TEXT, '마이페이지'))) #CIEAT의 마이페이지
-finally:
-    pass
-
-
-
-
+#개인정보 삭제하고 커밋할 것!!!
+driver.find_element_by_name('userId').send_keys('') #학번 작성
+driver.find_element_by_name('userPw').send_keys('') #비밀번호 작성
+driver.find_element_by_class_name('btn_login_submit').click()
+get_subject_name()
