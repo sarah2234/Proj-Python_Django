@@ -23,19 +23,21 @@ options.add_argument('--incognito')
 options.add_argument('--headless')
 
 # chrome driver를 불러오고 위의 option을 적용시킴
-driver = webdriver.Chrome('/Users/이승현/chromedriver/chromedriver') #본인 컴퓨터에서 chromedrive가 있는 경로 입력
+driver = webdriver.Chrome('') #본인 컴퓨터에서 chromedrive가 있는 경로 입력
 # driver = webdriver.Chrome(
 #     '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe')
 
 class Student:
     __course_list={} #현재 수강 중인 과목의 이름과 교수님 목록 (과목명:교수님 형태)
-    __schedule_list={} #현재 수강 중인 과목의 이름과 시간 목록 (과목명:(요일과 시간 구분x)시간 형태)
-    __schedule_list_ver2={} #현재 수강 중인 과목의 이름과 시간 목록 (과목명:(요일과 시간이 리스트 형태로 구분)시간 형태) // 만일을 위하여 구현함
-    __week=[] #일주일 강의 시간 목록
+    __schedule_list={} #현재 수강 중인 과목의 이름과 시간 목록 (과목명:(요일과 시간 리스트 형태로 구분)시간표 형태)
+
+    __time=['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00','24:00'] #오전 09시 ~ 오전 00시
+    __week__=[] #일주일 강의 시간 목록
     # [['월', ['08,09']], ['수', ['03']]]
-    # [['금', ['01,02,03']], ['', []]]과 같은 형태로 출력됨. (*숫자는 int형이 아닌 str형!)
-    __course_name_for_DB=[]#DB를 위한 교과목명              Q!: class로 배열을 만들어서 값을 대입하나?
-    __professor_for_DB=[]#DB를 위한 교수명 리스트
+    # [['금', ['01,03']], ['', []]]과 같은 형태로 출력됨. (*숫자는 int형이 아닌 str형!)
+
+    __course_name_for_DB__=[]#DB를 위한 교과목명              Q!: class로 배열을 만들어서 값을 대입하나?
+    __professor_for_DB__=[]#DB를 위한 교수명 리스트
 #week는 어떻게 처리해야하지?
 
     def get_subject_name(self):  # CIEAT의 마이페이지에서 과목명 가져오기
@@ -76,10 +78,15 @@ class Student:
             professor = value.find_elements_by_tag_name('td')[5]  # 교수님 (rows의 5번째 열에 해당)
             self.__course_list[lecture.text.strip()] = professor.text.strip()  # course_list에 '과목명: 교수님' 추가
 
-            self.__course_name_for_DB.append(lecture.text.strip()) #DB용 교과목명 목록 구축
-            self.__professor_for_DB.append(professor.text.strip()) #DB용 교수님 성함 목록 구축
+            self.__course_name_for_DB__.append(lecture.text.strip()) #DB용 교과목명 목록 구축
+            self.__professor_for_DB__.append(professor.text.strip()) #DB용 교수님 성함 목록 구축
 
-    def get_schedule(self): #개신누리에서 엑셀 파일 다운 받아서 전체 강좌의 시간표 확인
+    def get_schedule(self): #개신누리에서 엑셀 파일 다운 받아서 전체 강좌의 시간표 확인, CIEAT 내 교과목 이수 현황과 비교하여 사용자에게 입력받음
+        #계절학기의 경우 학기 도중에 추가될 수 있으므로 사용자에게 0을 입력받아서 맨 마지막에 제외시킬 것
+
+        deleting_course_list=[] #사용자가 제거하고 싶은 수강 과목을 해당 리스트에 저장 후 함수의 끝 부분에서 삭제 (반복문에서 삭제할 경우 딕셔너리의 길이가 달라짐)
+        deleting_professor_list=[] ##사용자가 제거하고 싶은 수강 과목의 교수님 성함을 해당 리스트에 저장 후 함수의 끝 부분에서 삭제
+
         lectures_info_list=pd.read_excel('./개설강좌(계획서)조회.xlsx', #상대참조(같은 디렉터리 내에 엑셀 파일 있다고 가정)
                                          header=0, #칼럼이 시작하는 곳
                                          dtype={'순번':str,
@@ -91,11 +98,12 @@ class Student:
 
         lectures_time_list=lectures_info_list.loc[:,['과목명','담당교수','수업시간']] #loc으로 엑셀에서 '과목명', '담당교수', '수업시간'의 열만 추출, 앞의 :는 행 부분 / .iloc[index] 방법도 존재
 
-        for lecture_name, professor in self.__course_list.items():
+        for lecture_name, professor in self.__course_list.items(): #CIEAT에서 가져온 과목명, 교수님 성함 (계절학기를 신청하였을 경우 계절학기가 추가될 수도 있음)
             searching_lecture = lectures_time_list[
                 lectures_time_list['과목명'] == lecture_name]  #CIEAT의 마이페이지에서 가져온 과목명과 일치하는 행 선별, lectures_time_list[]으로 유효한 값을 가지는 행만 추출
             searching_lecture=searching_lecture[searching_lecture['담당교수']==professor] #일치하는 과목명 선별 후 일치하는 담당교수 행 추출
-            result=searching_lecture.loc[:,['과목명','담당교수','수업시간']] #선별되어진 searching_lecture의 '과목명', '담당교수'와 '수업시간' 열을 result에 저장 (순번은 왜 자꾸 출력되는 거지?)
+            result=searching_lecture.loc[:,['과목명','담당교수','수업시간']] #선별되어진 searching_lecture의 '과목명', '담당교수'와 '수업시간' 열을 result에 저장
+
             list_from_result=result.values.tolist() #데이터프레임을 numpy의 ndarray로 변환: 데이터프레임 객체의 values 속성 사용 (pandas에 정의됨)
                                                     #ndarray는 numpy의 다차원 행렬 자료구조 클래스, 파이썬이 제공하는 list 자료형과 동일한 출력 형태
 
@@ -106,19 +114,19 @@ class Student:
                 print("해당 과목명과 일치하는 수업이 존재하지 않습니다.")
             else:
                 print("[",lecture_name,"] 검색 결과:", sep='')
-                for index in range(len(list_from_result)):
+                for index in range(len(list_from_result)): #list_from_result: 같은 이름 다른 수업명 리스트
                     time_1=list_from_result[index][2].split('[') #time_1[0]: 첫 번째 시간
-                    #시간표가 시간[강의실] 시간[강의실]의 형태인 경우 parsing_1=[시간, 강의실] 시간, 강의실]] 꼴
+                    #시간표가 시간[강의실] 시간[강의실]의 형태인 경우 parsing_1=['시간', '강의실] 시간', '강의실]'] 꼴
+
                     try:
                         time_2=time_1[1].split(']') #time_2[-1]: 두 번째 시간
                     except ValueError: #두 번째 시간 없을 때 time_2는 공백란
                         time_2=''
 
-                    time_1[0].strip()
-                    time_2[-1].strip()
-                    time=time_1[0]+time_2[-1]
-                    del list_from_result[index][2] #시간+[강의실]에서 시간만 보이도록 변경
-                    list_from_result[index].append(time) #시간 리스트에 추가
+                    time=time_1[0]+time_2[-1] #첫 번째 시간 + 두 번째 시간
+                    del list_from_result[index][2] #'시간+[강의실]'에서 '첫 번째 시간 + 두 번째 시간'으로 보이도록 변경
+                    list_from_result[index].append(time) #'첫 번째 시간 + 두 번째 시간' 리스트에 추가
+
                     print(index+1,":",list_from_result[index][1],"교수님 -",list_from_result[index][2]) #'순번 : 000 교수님 - 시간' 형태로 출력
                 print()
 
@@ -128,6 +136,8 @@ class Student:
                 print()
 
                 if choose_lecture_num==0:
+                    deleting_course_list.append(lecture_name) #나중에 삭제할 수 있도록 리스트에 저장
+                    deleting_professor_list.append(professor)
                     break
                 elif 1 <= choose_lecture_num and choose_lecture_num <= len(list_from_result):
                     lecture_time=list_from_result[choose_lecture_num-1][2] #lecture_time: 찾은 과목의 시간을 저장
@@ -136,31 +146,57 @@ class Student:
                 else:
                     print("순번에 맞게 입력해주세요.")
 
+        for course in deleting_course_list:
+            del self.__course_list[course] #deleting_course_list에 저장하였던 교과목 딕셔너리에서 삭제
+            self.__course_name_for_DB__.remove(course) #DB용 리스트에서도 삭제
+        for professor in deleting_professor_list:
+            self.__professor_for_DB__.remove(professor) #DB용 리스트에서 교수님 성함 삭제
 
-    def get_divided_schedule(self): #수강하는 과목을 요일과 n교시로 나누어 리스트에 저장
+
+    def convert_to_timeline(self): #수강하는 과목을 요일과 n교시로 나누어 01교시=09:00와 같이 저장
         for lecture_name, lecture_time in self.__schedule_list.items():
             number_of_lecture=lecture_time.split('  ') #공백이 최소 2번 이상 나온 후 다른 요일의 수업 표시하므로 split
+            number_of_lecture[0]=number_of_lecture[0].strip()
 
-            number_of_lecture[0]=number_of_lecture[0].replace(' ','')
             day_of_first_lecture=number_of_lecture[0][0] #첫 번째 강의의 요일 가져오기
             time_of_first_lecture=number_of_lecture[0][1:] #첫 번째 강의의 시간 리스트 가져오기
             each_time_of_first_lecture=time_of_first_lecture.split(' ,') #첫 번째 강의의 시간 개별로 가져오기
 
-            try: #수업을 1주일에 한 번만 하는 경우 대비
-                number_of_lecture[1]=number_of_lecture[1].replace(' ','')
+            for index, time_num in enumerate(each_time_of_first_lecture): #time_num 예시: 01, 02, 10 등의 문자열
+                if time_num[0]=='0':
+                    time_num=time_num[1:] #02 >> 2와 같이 변경
+                time_num=int(time_num)
+                each_time_of_first_lecture[index]=time_num #정수형으로 저장(__time의 인덱스로 사용)
+
+            try: #수업을 1주일에 두 번 하는 경우 대비
+                number_of_lecture[1] = number_of_lecture[1].strip()
                 day_of_second_lecture = number_of_lecture[1][0]  # 두 번째 강의의 요일 가져오기
-                time_of_second_lecture = number_of_lecture[1][1:]  # 두 번째 강의의 시간 리스트 가져오기
+                time_of_second_lecture=number_of_lecture[1][1:] #첫 번째 강의의 시간 리스트 가져오기
                 each_time_of_second_lecture = time_of_second_lecture.split(' ,')  # 두 번째 강의의 시간 개별로 가져오기
-            except IndexError:
+
+                for index, time_num in enumerate(each_time_of_second_lecture):  # time_num 예시: 01, 02, 10 등의 문자열
+                    if time_num[0] == '0':
+                        time_num = time_num[1:] #02 >> 2와 같이 변경
+                    time_num = int(time_num)
+                    each_time_of_second_lecture[index] = time_num #정수형으로 저장(__time의 인덱스로 사용)
+
+            except IndexError: #1주일에 1번하는 수업에 대해서는 공백 처리
                 day_of_second_lecture=''
                 each_time_of_second_lecture=[]
 
-            modified_lecture_time=[[day_of_first_lecture,each_time_of_first_lecture],[day_of_second_lecture,each_time_of_second_lecture]] #[[첫 번째 요일,[시간1,시간2,...]],[두 번째 요일,[시간1,시간2,...]]]
-            self.__week.append(modified_lecture_time) #week에 상단 리스트 형태로 삽입
+            # [[첫 번째 요일,[시작 시간, 종료 시간]],[두 번째 요일,[시작 시간, 종료 시간]]
+            if day_of_second_lecture=='':
+                modified_lecture_time=[[day_of_first_lecture,[self.__time[each_time_of_first_lecture[0]-1],self.__time[each_time_of_first_lecture[-1]]]]]
+            else:
+                modified_lecture_time=[[day_of_first_lecture,[self.__time[each_time_of_first_lecture[0]-1],self.__time[each_time_of_first_lecture[-1]]]],
+                                       [day_of_second_lecture,[self.__time[each_time_of_second_lecture[0]-1],self.__time[each_time_of_second_lecture[-1]]]]]
+            self.__week__.append(modified_lecture_time) #week에 상단 리스트 형태로 삽입
 
-            self.__schedule_list_ver2[lecture_name]=modified_lecture_time #schedule_list_ver2는 schedule_list와 달리 요일과 시간이 구분되어있음
 
 student1=Student()
 student1.get_subject_name()
 student1.get_schedule()
-student1.get_divided_schedule()
+student1.convert_to_timeline()
+print(student1.__course_name_for_DB__)
+print(student1.__professor_for_DB__)
+print(student1.__week__)
