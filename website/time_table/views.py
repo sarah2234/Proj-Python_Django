@@ -86,7 +86,7 @@ def load(request):
     messages.add_message(request, messages.INFO, 'working on it')
     data_list = Data.objects.order_by('context_ellipsis')
     context = {'data_list': data_list}
-    return render(request, 'time_table/load_data.html', context)
+    return redirect('time_table:schedule')
 
 
 def schedule(request):
@@ -139,8 +139,8 @@ def crawling(request):
         # 로그인
         driver.get('https://cbnu.blackboard.com/')
         # 가끔씩 학번이랑 비밀번호를 홈페이지에서 읽어오지 못하고 오류가 발생하는 경우가 있다.
-        driver.find_element_by_name('uid').send_keys('2020039053')  # 학번
-        driver.find_element_by_name('pswd').send_keys('9120chisan!')  # Blackboard 비밀번호
+        driver.find_element_by_name('uid').send_keys(request.POST.get('id'))  # 학번
+        driver.find_element_by_name('pswd').send_keys(request.POST.get('password'))  # Blackboard 비밀번호
         driver.find_element_by_xpath('//*[@id="entry-login"]').click()
 
         driver.get('https://cbnu.blackboard.com/ultra/stream')
