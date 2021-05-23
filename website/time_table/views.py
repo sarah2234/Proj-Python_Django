@@ -8,13 +8,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-import os
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "websaver.settings")
-import django
-
-django.setup()
-
 from django.shortcuts import render, redirect
 from datetime import datetime
 
