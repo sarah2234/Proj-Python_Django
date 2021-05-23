@@ -1,0 +1,82 @@
+<!--사용자 정의 filter 불러오기-->
+{% load time_table_extras %}
+{% load static %}
+<!--list_schedule css파일 불러오기-->
+<link rel="stylesheet" type="text/css" href="{% static 'list_schedule.css' %}">
+<!--weekly_schedule css파일 불러오기-->
+<link rel="stylesheet" type="text/css" href="{% static 'weekly_schedule.css' %}">
+
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="apple-touch-icon" sizes="76x76" href="{% static 'img/apple-icon.png' %}">
+  <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <title>
+    Team Aha!
+  </title>
+  <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
+  <!--     Fonts and icons     -->
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700,200" rel="stylesheet" />
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css" rel="stylesheet">
+  <!-- CSS Files -->
+  <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/paper-dashboard.css' %}" rel="stylesheet" />
+</head>
+
+<body class="">
+  <div class="wrapper ">
+    <div class="main-panel" style="height: 100vh;">
+      <div class="content">
+          <div>
+              <form method="post" action="{% url 'time_table:schedule' %}">
+                  {% csrf_token %}
+                  <button type="submit">돌아가기</button>
+              </form>
+          </div>
+          <div class="mb-3">
+              <h3 class="mt-0 mb-3 text-dark op-8 font-weight-bold">
+                  개인 일정 수정
+              </h3>
+          </div>
+          <form method="post" action="{% url 'time_table:edit_function' data.id %}">
+              {% csrf_token %}
+<!--          종류는 과제로 자동지정-->
+              <p>제목</p>
+              <p><textarea name="name" id="name" rows="1" placeholder={{data.name}}></textarea></p>
+              <p>세부사항</p>
+              <p><textarea name="content" id="content" rows="5" placeholder={{data.content}}></textarea></p>
+              <p>시간: {{ data.time }}</p>
+              <input type="date" name="date" id="date"> <input type="time" name="time" id="time"></p>
+              <button type="submit">일정 수정하기</button>
+          </form>
+          <form method="post" action="{% url 'time_table:delete_function' data.id %}">
+              {% csrf_token %}
+              <button type="submit">이 일정 삭제하기</button>
+          </form>
+      </div>
+        <footer class="footer" style="position: absolute; bottom: 0; width: -webkit-fill-available;">
+            <div class="container-fluid">
+                <div class="row">
+                    <nav class="footer-nav">
+                        <ul>
+                            <li><a href="https://www.creative-tim.com" target="_blank">Creative Tim</a></li>
+                            <li><a href="https://www.creative-tim.com/blog" target="_blank">Blog</a></li>
+                            <li><a href="https://www.creative-tim.com/license" target="_blank">Licenses</a></li>
+                        </ul>
+                    </nav>
+                    <div class="credits ml-auto">
+                        <span class="copyright">
+                            © 2021, made with <i class="fa fa-heart heart"></i> by Aha
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+  </div>
+</body>
+
+</html>
