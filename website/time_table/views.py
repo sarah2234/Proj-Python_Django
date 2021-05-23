@@ -21,6 +21,8 @@ from datetime import datetime
 from .models import Data, TimeTable
 import re
 
+from django.contrib import messages
+
 # 창 띄우지 않는 설정. background에서 동작.
 options = webdriver.ChromeOptions()
 options.add_argument('--ignore-certificate-errors')
@@ -38,10 +40,50 @@ driver = webdriver.Chrome(
 date_list = ['월', '화', '수', '목', '금', '토', '일']
 
 
+def add_schedule(request):
+    return render(request, 'time_table/add_schedule.html')
+
+
+def add_function(request):
+    name = request.POST.get('name')
+    content = request.POST.get('content')
+    date = request.POST.get('date')
+    time = request.POST.get('time')
+    time_input = "".join([date, "-", time])
+    if Data.objects.filter(name=name, content=content).count() == 0:
+        Data(sort='과제', context_ellipsis='사용자정의 일정', name=name,
+             content=content, time=datetime.strptime(time_input, '%Y-%m-%d-%H:%M')).save()
+    return redirect('time_table:schedule')
+
+
+def edit_schedule(request, data_id):
+    data = Data.objects.get(id=data_id)
+    context = {'data': data}
+    return render(request, 'time_table/edit_schedule.html', context)
+
+
+def delete_function(request, data_id):
+    Data.objects.get(id=data_id).delete()
+    return redirect('time_table:schedule')
+
+
+def edit_function(request, data_id):
+    Data.objects.get(id=data_id).delete()
+    name = request.POST.get('name')
+    content = request.POST.get('content')
+    date = request.POST.get('date')
+    time = request.POST.get('time')
+    time_input = "".join([date, "-", time])
+    Data(sort='과제', context_ellipsis='사용자정의 일정', name=name,
+         content=content, time=datetime.strptime(time_input, '%Y-%m-%d-%H:%M')).save()
+    return redirect('time_table:schedule')
+
+
 def load(request):
     """
     Data 목록 출력
     """
+    messages.add_message(request, messages.INFO, 'working on it')
     data_list = Data.objects.order_by('context_ellipsis')
     context = {'data_list': data_list}
     return render(request, 'time_table/load_data.html', context)
@@ -57,7 +99,7 @@ def schedule(request):
     # list_schedule. 시간 순서대로 정렬.
     today_s = datetime(now.year, now.month, now.day)
     today_e = datetime(now.year, now.month, now.day, 23, 59)
-    today_data = Data.objects.filter(sort='과제', time__gte=today_s, time__lte=today_e)
+    today_data = Data.objects.filter(sort='과제', time__gte=today_s, time__lte=today_e).order_by('time')
     data_list = Data.objects.filter(sort='과제', time__gte=today_e).order_by('time')
 
     # 같은 날짜끼리 묶어서 저장.
