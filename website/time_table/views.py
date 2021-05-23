@@ -131,7 +131,12 @@ def crawling(request):
     elif request.method == "POST":
         # 로그인
         driver.get('https://cbnu.blackboard.com/')
-        # 가끔씩 학번이랑 비밀번호를 홈페이지에서 읽어오지 못하고 오류가 발생하는 경우가 있다.
+        # 가끔씩 학번이랑 비밀번호를 홈페이지에 입력하지 못하고 오류가 발생하는 경우가 있어서 추가.
+        try:
+            element = WebDriverWait(driver, 20).until(
+                EC.presence_of_element_located((By.NAME, "uid")))
+        finally:
+            pass
         driver.find_element_by_name('uid').send_keys(request.POST.get('id'))  # 학번
         driver.find_element_by_name('pswd').send_keys(request.POST.get('password'))  # Blackboard 비밀번호
         driver.find_element_by_xpath('//*[@id="entry-login"]').click()
@@ -141,7 +146,7 @@ def crawling(request):
         # 내가 원하는 element가 load 될때까지 기다리기
         try:
             element = WebDriverWait(driver, 20).until(
-                EC.presence_of_element_located((By.CLASS_NAME, "activity-feed")))  # 이걸 원하는 내용으로 바꿨더니 로딩이 된다!!!!
+                EC.presence_of_element_located((By.CLASS_NAME, "activity-feed")))
         finally:
             pass
 
