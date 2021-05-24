@@ -102,7 +102,7 @@ def zoom_link(id, password, current_lecture):  # 해당 과목 내 공지 사항
         except NoSuchElementException:  # TA 공지사항 아닌 것들에 대해서만 조사
             try:
                 course = driver.find_element_by_partial_link_text('zoom.us')  # 줌 링크가 있는 요소 발견
-                go_to_zoom(course.text.strip())
+                go_to_zoom(course.text.strip())  # 줌 실행 화면을 창을 띄워서 보여주기 위함
                 return # driver 설정이 다른 파일이 해당 링크를 입력받기
 
                 # coure.click()를 쓰지 않고 새 탭에서 여는 방식을 채택한 이유: 줌 링크를 열면 어떤 사람은 'zoom meetings를 여시겠습니까'가 뜸.
@@ -117,38 +117,22 @@ def zoom_link(id, password, current_lecture):  # 해당 과목 내 공지 사항
 
 def go_to_zoom(link_text):
     driver = webdriver.Chrome('/Users/이승현/chromedriver/chromedriver')  # 창 띄워야 함
-    driver.get(link_text)  # 약 1분 정도 소요됨!!
+    driver.get(link_text)  # 약 1분 정도 소요됨!! >> 따라서 수업 시작 1분 전에 줌 화면을 크롬에 띄움
 
 def take_class_on_a_date(id, password, lectures_sorted_by_week):
     today = datetime.datetime.today()
     today = today.weekday()  # 오늘의 요일
 
-#    for lecture_info in lectures_sorted_by_week[today]:  # 오늘의 요일에 하는 강의들 리스트 [강의명, 시작 시간, 끝나는 시간]
-#
-#        # 시작 시간(lecture_info[1])일 때 줌 링크 연결 (zoom_link는 과목명(lecture_info[0]을 인수로 받음)
-#        #schedule.every().monday.at(lecture_info[1]).do(zoom_link, lecture_info[0])
-#        print(lecture_info[0] + '수업 기다리기')
-#        print("(시작 시간: ", lecture_info[1], ")", sep='')
-
-    lecture_info_1=lectures_sorted_by_week[today][0]
-    schedule.every().monday.at("01:22").do(zoom_link, id, password, lecture_info_1[0])
-    print(lecture_info_1[0] + '수업 기다리기')
-    print("(시작 시간: ", lecture_info_1[1], ")", sep='')
-
-    lecture_info_2=lectures_sorted_by_week[today][2]
-    now="04:51"
-    now = datetime.datetime.strptime(now,"%H:%M")
-    two_minutes_earlier=now-datetime.timedelta(minutes=2)  # 수업 시작 2분 전
-    two_minutes_earlier_final=str(two_minutes_earlier.hour)+':'+str(two_minutes_earlier.minute)
-    try:
-        two_minutes_earlier_final[5]
-    except IndexError:
-        two_minutes_earlier_final='0'+two_minutes_earlier_final
-
-    print(two_minutes_earlier_final)
-    link=schedule.every().monday.at(two_minutes_earlier_final).do(zoom_link, id, password, lecture_info_2[0])
-    print(lecture_info_2[0] + '수업 기다리기')
-    print("(시작 시간: ", lecture_info_2[1], ")", sep='')
+    for lecture_info in lectures_sorted_by_week[today]:  # 오늘의 요일에 하는 강의들 리스트 [강의명, 시작 시간, 끝나는 시간]
+        # 시작 시간(lecture_info[1]) 2분 전일 때 줌 링크 연결 (zoom_link는 과목명(lecture_info[0]을 인수로 받음)
+        lecture_info_time=datetime.datetime.strptime(lecture_info[1],"%H:%M")
+        two_minutes_earlier = lecture_info_time - datetime.timedelta(minutes=2)  # 수업 시작 2분 전
+        two_minutes_earlier = str(two_minutes_earlier.hour) + ':' + str(two_minutes_earlier.minute)
+        if len(two_minutes_earlier) == 4:
+            two_minutes_earlier = '0' + two_minutes_earlier
+        schedule.every().day.at(two_minutes_earlier).do(zoom_link, id, password, lecture_info[0])
+        print(lecture_info[0] + '수업 기다리기')
+        print("(시작 시간: ", lecture_info[1], ")", sep='')
 
 def put_at_the_end():
     while True:  # 무한 루프인 만큼 맨 아래에 코드 배치
