@@ -24,7 +24,7 @@ options.add_argument('--incognito')
 options.add_argument('--headless')
 
 # chrome driver를 불러오고 위의 option을 적용시킴
-driver = webdriver.Chrome('/Users/이승현/chromedriver/chromedriver') #본인 컴퓨터에서 chromedrive가 있는 경로 입력
+driver = webdriver.Chrome('/Users/이승현/chromedriver/chromedriver', options=options) #본인 컴퓨터에서 chromedrive가 있는 경로 입력
 # driver = webdriver.Chrome(
 #     '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe')
 
@@ -70,6 +70,7 @@ class Student:
             except UnexpectedAlertPresentException:  # 유저 정보 오기입
                 print("학번과 비밀번호를 확인해주십시오.")
                 print()
+                self.login_error=1
 
         self._get_subject_name()
 
@@ -78,8 +79,10 @@ class Student:
         try:
             element = WebDriverWait(driver, 20).until(
                 EC.presence_of_element_located((By.XPATH, '//*[@id="mileageRcrHistList"]/div')))  # 마이페이지 내 교과 이수 현황
-        finally:
-            pass
+        except UnexpectedAlertPresentException:
+            print("현재 서비스가 원활하지 않습니다.")
+            print("잠시 후 다시 이용해 주십시오.")
+            return  # 객체를 다시 생성해야 하나? 그런데 이건 아이디와 비밀번호를 웹 크롤러로 잘못 입력받았을 때 뜨는 페이지라서 괜찮을 거 같기도 (아주 가끔 서버 다운 있음)
 
         tbody = driver.find_element_by_xpath('//*[@id="mileageRcrHistList"]/div').find_element_by_tag_name(
             'tbody')  # 교과 이수 현황 테이블
@@ -144,19 +147,26 @@ class Student:
 
             while(True):
                 print("*과목을 잘못 선택하였을 경우 0을 입력해주세요.")
-                choose_lecture_num=input("해당하는 과목의 순번 입력 >> ") #수업명이 겹치는 경우가 꽤 있으므로 시간대를 고름
+                choose_lecture_num=input("해당하는 과목의 순번 입력 >> ")  # 수업명이 겹치는 경우가 꽤 있으므로 시간대를 고름
                 print()
+                try:  # 중첩이 어지간히 된 함수로구먼.
+                    choose_lecture_num=int(choose_lecture_num) # 정수형으로 바꿀 수 있으면 바꾸기
+                except ValueError:
+                    print("숫자를 기입해주세요.")
+                    print()
+                    continue
 
-                if int(choose_lecture_num)==0:
+                if choose_lecture_num == 0:
                     deleting_course_list.append(lecture_name) #나중에 삭제할 수 있도록 리스트에 저장
                     deleting_professor_list.append(professor)
                     break
-                elif 1 <= int(choose_lecture_num) and int(choose_lecture_num) <= len(list_from_result):
-                    lecture_time=list_from_result[int(choose_lecture_num)-1][2] #lecture_time: 찾은 과목의 시간을 저장
+                elif 1 <= choose_lecture_num and choose_lecture_num <= len(list_from_result):
+                    lecture_time=list_from_result[choose_lecture_num-1][2] #lecture_time: 찾은 과목의 시간을 저장
                     self.__schedule_list[lecture_name]=lecture_time #스케줄 딕셔너리에 과목명:(요일과 시간 구분x)시간 형태로 입력
                     break
                 else:
                     print("순번에 맞게 입력해주세요.")
+                    print()
 
         for course in deleting_course_list:
             del self.__course_list[course] #deleting_course_list에 저장하였던 교과목 딕셔너리에서 삭제
