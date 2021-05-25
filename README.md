@@ -19,8 +19,27 @@ activate
 >cd <가상 환경 디렉터리 경로>\\<가상환경이름>\\Scripts
 deactivate
 
+pycharm - 가상환경 설정방법
+------
+1. File 메뉴 -> open -> Open-Source-Project-03(클론받은프로젝트폴더) 선택해서 열기
+2. File 메뉴 -> setting -> Project:~ 들어가서 Python Interpreter 선택
 
+3. 우측 상단 톱니바퀴 -> add 클릭
+4. Virtulaenv Environment 탭 선택
+5. New enviroment -> Location: 현재 프로젝트 폴더\venv (예시: C:\Open-Source-Project-03\venv)
+   Base interpreter 설정: python.exe가 들어있는 경로(파이썬이 설치되어있는 폴더)
+6. 체크박스 2개 선택할 필요 X
+7. OK 선택
+8. Python Interpreter가 방금 추가한 가상환경으로 바뀌면 완료. 바뀌지 않으면
+   add -> Existing environment에서 방금 만든 가상환경 선택해서 OK
+9. 왼쪽 상단 +버튼 눌러서 필요한 라이브러리(django, bs4, selenium 등) 설치
 
+3~8번 과정: 새로운 가상환경 추가 / 만들지 않고 사전에 이미 만들어 놓은 가상환경을 선택해서 사용해도 무방
+
+프로젝트 실행
+-------
+가상환경에 진입되어 있는 상태에서 Open-Source-Project-03\website 폴더 안에 들어가서
+python manage.py runserver 터미널에 입력
 
 
 webdriver 설치 for 웹크롤링
