@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup as bs
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 
 from django.shortcuts import render, redirect
 from datetime import datetime
@@ -133,15 +134,17 @@ def crawling(request):
         driver.get('https://cbnu.blackboard.com/')
         # 가끔씩 학번이랑 비밀번호를 홈페이지에 입력하지 못하고 오류가 발생하는 경우가 있어서 추가.
         try:
-            element = WebDriverWait(driver, 20).until(
+            element = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.NAME, "uid")))
-        finally:
+            # 로그인 되어있지 않는 경우 로그인
+            driver.find_element_by_name('uid').send_keys(request.POST.get('id'))  # 학번
+            driver.find_element_by_name('pswd').send_keys(request.POST.get('password'))  # Blackboard 비밀번호
+            driver.find_element_by_xpath('//*[@id="entry-login"]').click()
+        except TimeoutException:
+            print('로그인상태')
             pass
-        driver.find_element_by_name('uid').send_keys(request.POST.get('id'))  # 학번
-        driver.find_element_by_name('pswd').send_keys(request.POST.get('password'))  # Blackboard 비밀번호
-        driver.find_element_by_xpath('//*[@id="entry-login"]').click()
-
-        driver.get('https://cbnu.blackboard.com/ultra/stream')
+        finally:
+            driver.get('https://cbnu.blackboard.com/ultra/stream')
 
         # 내가 원하는 element가 load 될때까지 기다리기
         try:
@@ -274,5 +277,4 @@ def crawling(request):
                                                content=content).count() == 0:
                             Data(sort=sort, context_ellipsis=context_ellipsis, name=name,
                                  content=content).save()
-
     return redirect('time_table:load')
