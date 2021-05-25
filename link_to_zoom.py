@@ -7,6 +7,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import InvalidArgumentException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import ActionChains
 
@@ -15,17 +17,19 @@ import time
 import schedule #특정 시간에 수행
 import get_schedule #기존의 '수강 과목 시간표(CIEAT+Excel)을 get_schedule로 변경
 
-def zoom_link(id, password, current_lecture):  # 해당 과목 내 공지 사항으로 들어가서 링크 받음
-    # 창 띄우지 않는 설정. background에서 동작.
-    options = webdriver.ChromeOptions()
-    options.add_argument('--ignore-certificate-errors')
-    options.add_argument('--incognito')
-    options.add_argument('--headless')
+# 창 띄우지 않는 설정. background에서 동작.
+options = webdriver.ChromeOptions()
+options.add_argument('--ignore-certificate-errors')
+options.add_argument('--incognito')
+options.add_argument('--headless')
 
-    # chrome driver를 불러오고 위의 option을 적용시킴
-    driver = webdriver.Chrome('/Users/이승현/chromedriver/chromedriver', options=options)  # 본인 컴퓨터에서 chromedrive가 있는 경로 입력
-    # driver = webdriver.Chrome(
-    #     '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe')
+# chrome driver를 불러오고 위의 option을 적용시킴
+driver = webdriver.Chrome('/Users/이승현/chromedriver/chromedriver', options=options)  # 본인 컴퓨터에서 chromedrive가 있는 경로 입력
+# driver = webdriver.Chrome(
+#     '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe')
+
+def zoom_link(id, password, current_lecture):  # 해당 과목 내 공지 사항으로 들어가서 링크 받음
+
     driver.get('https://cbnu.blackboard.com/')
     try:  # 블랙보드 로그인
         driver.find_element_by_name('uid').send_keys(id)  # 학번 작성
@@ -99,16 +103,19 @@ def zoom_link(id, password, current_lecture):  # 해당 과목 내 공지 사항
         try:
             TA = driver.find_element_by_partial_link_text('TA')  # TA라고 적혀있는 공지사항일 경우 그 공지는 넘김
 
+
         except NoSuchElementException:  # TA 공지사항 아닌 것들에 대해서만 조사
+
             try:
                 course = driver.find_element_by_partial_link_text('zoom.us')  # 줌 링크가 있는 요소 발견
                 go_to_zoom(course.text.strip())  # 줌 실행 화면을 창을 띄워서 보여주기 위함
-                return # driver 설정이 다른 파일이 해당 링크를 입력받기
-
+                return  # driver 설정이 다른 파일이 해당 링크를 입력받기
                 # coure.click()를 쓰지 않고 새 탭에서 여는 방식을 채택한 이유: 줌 링크를 열면 어떤 사람은 'zoom meetings를 여시겠습니까'가 뜸.
                 # '항상 zoom.us에서 연결된 앱에 있는 이 유형의 링크를 열도록 허용' 체크박스를 표시 안 하면 생기는데, 이거는 웹의 요소가 아니라서 웹크롤링으로 해결할 수 없음.
-            except NoSuchElementException:  # 줌 링크가 존재하지 않을 경우
+
+            except NoSuchElementException:
                 pass
+
         scroll.click()
         driver.find_element_by_tag_name('body').send_keys(Keys.PAGE_DOWN)
 
@@ -116,8 +123,11 @@ def zoom_link(id, password, current_lecture):  # 해당 과목 내 공지 사항
             print("줌 링크가 존재하지 않습니다.")
 
 def go_to_zoom(link_text):
-    driver = webdriver.Chrome('/Users/이승현/chromedriver/chromedriver')  # 창 띄워야 함
-    driver.get(link_text)  # 약 1분 정도 소요됨!! >> 따라서 수업 시작 1분 전에 줌 화면을 크롬에 띄움
+    try:
+        driver = webdriver.Chrome('/Users/이승현/chromedriver/chromedriver')  # 창 띄워야 함
+        driver.get(link_text)  # 약 1분 정도 소요됨!! >> 따라서 수업 시작 1분 전에 줌 화면을 크롬에 띄움
+    except InvalidArgumentException:
+        print("해당 줌 페이지가 존재하지 않습니다.\n")
 
 def take_class_on_a_date(id, password, lectures_sorted_by_week):
     today = datetime.datetime.today()
@@ -127,9 +137,13 @@ def take_class_on_a_date(id, password, lectures_sorted_by_week):
         # 시작 시간(lecture_info[1]) 2분 전일 때 줌 링크 연결 (zoom_link는 과목명(lecture_info[0]을 인수로 받음)
         lecture_info_time=datetime.datetime.strptime(lecture_info[1],"%H:%M")
         two_minutes_earlier = lecture_info_time - datetime.timedelta(minutes=2)  # 수업 시작 2분 전
-        two_minutes_earlier = str(two_minutes_earlier.hour) + ':' + str(two_minutes_earlier.minute)
-        if len(two_minutes_earlier) == 4:
-            two_minutes_earlier = '0' + two_minutes_earlier
+        hour=str(two_minutes_earlier.hour)
+        if len(hour) != 2:
+            hour='0'+hour
+        minute=str(two_minutes_earlier.minute)
+        if len(minute) != 2:
+            minute='0'+minute
+        two_minutes_earlier = hour + ':' + minute
         schedule.every().day.at(two_minutes_earlier).do(zoom_link, id, password, lecture_info[0])
         print(lecture_info[0] + '수업 기다리기')
         print("(시작 시간: ", lecture_info[1], ")", sep='')
