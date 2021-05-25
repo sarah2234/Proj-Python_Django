@@ -31,6 +31,7 @@ driver = webdriver.Chrome('/Users/이승현/chromedriver/chromedriver', options=
 class Student:
     __course_list={} #현재 수강 중인 과목의 이름과 교수님 목록 (과목명:교수님 형태)
     __schedule_list={} #현재 수강 중인 과목의 이름과 시간 목록 ('컴퓨터구조': '월08 ,09  수03 '와 같은 형태) // 추후 lectures_sorted_by_week에서 요일별로 강의 정리하기 위함
+    major='none' #enrollment_in_CIEAT.py에서 자신의 전공과 관련된 비교과 활동 웹크롤링
 
     __time=['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00','24:00'] #오전 09시 ~ 오전 00시
     __days = ['월', '화', '수', '목', '금', '토', '일']
@@ -74,7 +75,7 @@ class Student:
 
         self._get_subject_name()
 
-    def _get_subject_name(self):  # CIEAT의 마이페이지에서 과목명 가져오기
+    def _get_subject_name(self):  # CIEAT의 마이페이지에서 과목명 가져오기 & 전공
         driver.get('https://cieat.chungbuk.ac.kr/mileageHis/a/m/goMileageHisList.do')  # 마이페이지 주소
         try:
             element = WebDriverWait(driver, 20).until(
@@ -83,6 +84,9 @@ class Student:
             print("현재 서비스가 원활하지 않습니다.")
             print("잠시 후 다시 이용해 주십시오.")
             return  # 객체를 다시 생성해야 하나? 그런데 이건 아이디와 비밀번호를 웹 크롤러로 잘못 입력받았을 때 뜨는 페이지라서 괜찮을 거 같기도 (아주 가끔 서버 다운 있음)
+
+        major=driver.find_element_by_xpath('//*[@id="container_skip"]/div/section[1]/div/table/tbody/tr[1]/td[1]').text.strip()  # 마이페이지의 학과/학부 텍스트
+        self.major=major[:-2]  # '학과' 또는 '학부' 삭제
 
         tbody = driver.find_element_by_xpath('//*[@id="mileageRcrHistList"]/div').find_element_by_tag_name(
             'tbody')  # 교과 이수 현황 테이블
