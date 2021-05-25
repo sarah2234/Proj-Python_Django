@@ -8,6 +8,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.alert import Alert
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import UnexpectedAlertPresentException
+from selenium.common.exceptions import TimeoutException
 
 import pandas as pd #엑셀을 다루는 라이브러리 pandas
 import datetime
@@ -31,7 +32,9 @@ driver = webdriver.Chrome('/Users/이승현/chromedriver/chromedriver', options=
 class Student:
     __course_list={} #현재 수강 중인 과목의 이름과 교수님 목록 (과목명:교수님 형태)
     __schedule_list={} #현재 수강 중인 과목의 이름과 시간 목록 ('컴퓨터구조': '월08 ,09  수03 '와 같은 형태) // 추후 lectures_sorted_by_week에서 요일별로 강의 정리하기 위함
-    major='none' #enrollment_in_CIEAT.py에서 자신의 전공과 관련된 비교과 활동 웹크롤링
+    major='-' #enrollment_in_CIEAT.py에서 자신의 전공과 관련된 비교과 활동 웹크롤링
+    major_sub='-' #enrollment_in_CIEAT.py에서 자신의 부전공과 관련된 비교과 활동 웹크롤링
+    major_multiple='-' #enrollment_in_CIEAT.py에서 자신의 복수전공과 관련된 비교과 활동 웹크롤링
 
     __time=['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00','24:00'] #오전 09시 ~ 오전 00시
     __days = ['월', '화', '수', '목', '금', '토', '일']
@@ -54,24 +57,18 @@ class Student:
             try:
                 element = WebDriverWait(driver, 20).until(
                     EC.presence_of_element_located((By.ID, 'loginForm')))
-            finally:
-                pass
-
-            # 개인정보 삭제하고 커밋할 것!!!
-            try:
                 driver.find_element_by_name('userId').send_keys(self.id)  # 입력받은 학번으로 로그인
                 driver.find_element_by_name('userPw').send_keys(self.password)  # 입력받은 비밀번호로 로그인
                 driver.find_element_by_class_name('btn_login_submit').click()
-                self.login_error=0  # 로그인 성공
-                try:
-                    element = WebDriverWait(driver, 20).until(
-                        EC.presence_of_element_located((By.XPATH, '//*[@id="gnb_skip"]/ul/li[9]/ul')))  # 마이페이지 xpath
-                finally:
-                    pass
+                self.login_error = 0  # 로그인 성공
+                element = WebDriverWait(driver, 20).until(
+                    EC.presence_of_element_located((By.XPATH, '//*[@id="gnb_skip"]/ul/li[9]/ul')))  # 마이페이지 xpath
             except UnexpectedAlertPresentException:  # 유저 정보 오기입
                 print("학번과 비밀번호를 확인해주십시오.")
                 print()
-                self.login_error=1
+                self.login_error = 1
+            except TimeoutException:
+                pass  # 이미 로그인 되어있는 상태
 
         self._get_subject_name()
 
@@ -88,12 +85,22 @@ class Student:
         major=driver.find_element_by_xpath('//*[@id="container_skip"]/div/section[1]/div/table/tbody/tr[1]/td[1]').text.strip()  # 마이페이지의 학과/학부 텍스트
         self.major=major[:-2]  # '학과' 또는 '학부' 삭제
 
+        major_sub=driver.find_element_by_xpath('//*[@id="container_skip"]/div/section[1]/div/table/tbody/tr[1]/td[2]').text.strip()   # 마이페이지의 부전공/복수전공 텍스트
+        major_sub=major_sub[6:]
+        major_sub=major_sub.split("복수전공 : ")
+        self.major_sub=major_sub[0].rstrip()  # 복수전공이나 부전공을 안 해서 씨앗에서 어떻게 표시되는지 잘 모르겠음...
+        self.major_multiple=major_sub[1].rstrip()
+
         tbody = driver.find_element_by_xpath('//*[@id="mileageRcrHistList"]/div').find_element_by_tag_name(
             'tbody')  # 교과 이수 현황 테이블
         rows = tbody.find_elements_by_tag_name('tr')  # 행 별로 저장
         for index, value in enumerate(rows):
-            lecture = value.find_elements_by_tag_name('td')[3]  # 과목명 (rows의 3번째 열에 해당)
-            professor = value.find_elements_by_tag_name('td')[5]  # 교수님 (rows의 5번째 열에 해당)
+            try:
+                lecture = value.find_elements_by_tag_name('td')[3]  # 과목명 (rows의 3번째 열에 해당)
+                professor = value.find_elements_by_tag_name('td')[5]  # 교수님 (rows의 5번째 열에 해당)
+            except IndexError:  # 5.26 오전 3:45에 CIEAT 서버의 문제인지 이수 현황이 뜨지 않는 오류가 발생했다.
+                print('다시 시도해주십시오.\n')
+                return
 
             self.__course_list[lecture.text.strip()] = professor.text.strip()  # course_list에 '과목명: 교수님' 추가
 
