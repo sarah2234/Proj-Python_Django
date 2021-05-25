@@ -125,7 +125,6 @@ def interesting_CIEAT_activities_by_keyword(id, password, keyword):  # 과 이�
     driver.find_element_by_tag_name('body').send_keys(Keys.PAGE_DOWN)
 
     while True:
-        # 페이지의 윗 부분
         time.sleep(1)
         activities = driver.find_elements_by_class_name('program_lisbox')  # 비교과 활동들 전부 찾기
         for index, activity in enumerate(activities):
@@ -144,30 +143,6 @@ def interesting_CIEAT_activities_by_keyword(id, password, keyword):  # 과 이�
 
             except NoSuchElementException or TimeoutException:
                 pass
-
-                # 페이지의 아랫 부분
-                driver.find_element_by_tag_name('body').send_keys(Keys.PAGE_DOWN)
-                time.sleep(1)
-                activities = driver.find_elements_by_class_name('program_lisbox')  # 비교과 활동들 전부 찾기
-                for index, activity in enumerate(activities):
-                    try:
-                        name = activity.find_element_by_tag_name('dt').text.strip()  # 활동명
-                        if keyword in name:
-                            activity_detail = activity.find_elements_by_tag_name('dd')
-                            registration_date = activity_detail[0].find_elements_by_tag_name('span')[
-                                1].text.strip()  # 모집 기간
-                            activity_date = activity_detail[1].find_elements_by_tag_name('span')[
-                                1].text.strip()  # 활동 기간
-                            department = activity.find_elements_by_tag_name('dd')[2].find_elements_by_tag_name('span')[
-                                1].text.strip()  # 운영부서, (부서이름)  # 운영 부서
-                            print(name)
-                            print("모집기간:", registration_date)
-                            print("활동기간:", activity_date)
-                            print("운영부서:", department)
-                            print()
-
-                    except NoSuchElementException or TimeoutException:
-                        pass
 
         page_num+=1
         try:  # 신청 가능한 모든 페이지에 대해 조사
@@ -294,12 +269,12 @@ def go_to_CIEAT_activity_page(id, password, name_of_interesting_activity):  # �
             print("해당 비교과 활동이 존재하지 않습니다.\n")
             break
 
-#student=get_schedule.Student()
+student=get_schedule.Student()
 #go_to_CIEAT_activity_page(student.id, student.password, '활동 목록에 있는 이름들 기준으로 해야함(클릭해서 나오는 이름 말고)')
 #interesting_CIEAT_activities_by_major(student.id, student.password, student.major)
 #interesting_CIEAT_activities_by_major(student.id,student.password, student.major_sub)
 #interesting_CIEAT_activities_by_major(student.id,student.password, student.major_multiple)
 #test_major=input("테스트용 운영부서 입력받기(없을 경우 - 입력): ")
 #interesting_CIEAT_activities_by_major(student.id, student.password, test_major)
-#test_keyword=input("테스트용 키워드 입력받기(없을 경우 - 입력): ")
-#interesting_CIEAT_activities_by_keyword(student.id, student.password, test_keyword)
+test_keyword=input("테스트용 키워드 입력받기(없을 경우 - 입력): ")
+interesting_CIEAT_activities_by_keyword(student.id, student.password, test_keyword)
