@@ -34,6 +34,14 @@ driver = webdriver.Chrome(
 date_list = ['월', '화', '수', '목', '금', '토', '일']
 
 
+def cieat(request):
+    return render(request, 'cieat.html')
+
+
+def setting(request):
+    return render(request, 'setting.html')
+
+
 def add_schedule(request):
     return render(request, 'time_table/add_schedule.html')
 
