@@ -126,7 +126,7 @@ def go_to_zoom(link_text):
     try:
         driver = webdriver.Chrome('/Users/이승현/chromedriver/chromedriver')  # 창 띄워야 함
         driver.get(link_text)  # 약 1분 정도 소요됨!! >> 따라서 수업 시작 1분 전에 줌 화면을 크롬에 띄움
-    except InvalidArgumentException:
+    except InvalidArgumentException:  # 잘못된 형식의 링크
         print("해당 줌 페이지가 존재하지 않습니다.\n")
 
 def take_class_on_a_date(id, password, lectures_sorted_by_week):
@@ -145,8 +145,6 @@ def take_class_on_a_date(id, password, lectures_sorted_by_week):
             minute='0'+minute
         two_minutes_earlier = hour + ':' + minute
         schedule.every().day.at(two_minutes_earlier).do(zoom_link, id, password, lecture_info[0])
-        print(lecture_info[0] + '수업 기다리기')
-        print("(시작 시간: ", lecture_info[1], ")", sep='')
 
 def put_at_the_end():
     while True:  # 무한 루프인 만큼 맨 아래에 코드 배치
