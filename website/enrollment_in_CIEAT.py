@@ -8,7 +8,7 @@ from selenium.common.exceptions import UnexpectedAlertPresentException
 from selenium.common.exceptions import TimeoutException
 
 import time
-import get_schedule
+import get_schedule  # test
 
 # 창 띄우지 않는 설정. background에서 동작.
 options = webdriver.ChromeOptions()
@@ -220,13 +220,8 @@ def go_to_CIEAT_activity_page(id, password, name_of_interesting_activity):  # �
                     print("신청 접수되었습니다.\n")
                     return
 
-
             except NoSuchElementException:
                 pass
-
-
-
-
 
         # 페이지의 아랫 부분
         driver.find_element_by_tag_name('body').send_keys(Keys.PAGE_DOWN)
@@ -268,13 +263,3 @@ def go_to_CIEAT_activity_page(id, password, name_of_interesting_activity):  # �
         except NoSuchElementException:
             print("해당 비교과 활동이 존재하지 않습니다.\n")
             break
-
-student=get_schedule.Student()
-#go_to_CIEAT_activity_page(student.id, student.password, '활동 목록에 있는 이름들 기준으로 해야함(클릭해서 나오는 이름 말고)')
-#interesting_CIEAT_activities_by_major(student.id, student.password, student.major)
-#interesting_CIEAT_activities_by_major(student.id,student.password, student.major_sub)
-#interesting_CIEAT_activities_by_major(student.id,student.password, student.major_multiple)
-#test_major=input("테스트용 운영부서 입력받기(없을 경우 - 입력): ")
-#interesting_CIEAT_activities_by_major(student.id, student.password, test_major)
-test_keyword=input("테스트용 키워드 입력받기(없을 경우 - 입력): ")
-interesting_CIEAT_activities_by_keyword(student.id, student.password, test_keyword)

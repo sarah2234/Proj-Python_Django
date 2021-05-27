@@ -14,8 +14,8 @@ from selenium.webdriver import ActionChains
 
 import datetime
 import time
-import schedule #특정 시간에 수행
-import get_schedule #기존의 '수강 과목 시간표(CIEAT+Excel)을 get_schedule로 변경
+import schedule  # 특정 시간에 수행
+import get_schedule  # test
 
 # 창 띄우지 않는 설정. background에서 동작.
 options = webdriver.ChromeOptions()
@@ -129,13 +129,14 @@ def go_to_zoom(link_text):
     except InvalidArgumentException:  # 잘못된 형식의 링크
         print("해당 줌 페이지가 존재하지 않습니다.\n")
 
-def take_class_on_a_date(id, password, lectures_sorted_by_week):
+def take_class_on_a_date(id, password, todays_schedule):  # todays_schedule이 해당 요일에 하는 강의들로 구성되어 있다고 가정
+    # 추후 db에 따라 변경될 수 있음 // 일단은 todays_schedule이 [강의명, 시작 시간, 두 번째 시간]와 같은 형식이라고 가정...
     today = datetime.datetime.today()
     today = today.weekday()  # 오늘의 요일
 
-    for lecture_info in lectures_sorted_by_week[today]:  # 오늘의 요일에 하는 강의들 리스트 [강의명, 시작 시간, 끝나는 시간]
+    for lecture_info in todays_schedule:  # 오늘의 요일에 하는 강의들 리스트
         # 시작 시간(lecture_info[1]) 2분 전일 때 줌 링크 연결 (zoom_link는 과목명(lecture_info[0]을 인수로 받음)
-        lecture_info_time=datetime.datetime.strptime(lecture_info[1],"%H:%M")
+        lecture_info_time=datetime.datetime.strptime(lecture_info[1],"%H:%M")  # 시작 시간을 시간 형태로 바꿈
         two_minutes_earlier = lecture_info_time - datetime.timedelta(minutes=2)  # 수업 시작 2분 전
         hour=str(two_minutes_earlier.hour)
         if len(hour) != 2:
@@ -147,18 +148,6 @@ def take_class_on_a_date(id, password, lectures_sorted_by_week):
         schedule.every().day.at(two_minutes_earlier).do(zoom_link, id, password, lecture_info[0])
 
 def put_at_the_end():
-    while True:  # 무한 루프인 만큼 맨 아래에 코드 배치
+    while True:  # IMPORTANT: 무한 루프인 만큼 맨 아래에 코드 배치
         schedule.run_pending()
         time.sleep(1)
-
-# https://jackerlab.com/python-library-schedule/를 참고하여 작성하였습니다.
-
-student1 = get_schedule.Student()
-
-student1.get_schedule()
-take_class_on_a_date(student1.id, student1.password, student1.lectures_sorted_by_week)
-put_at_the_end()
-
-
-
-
