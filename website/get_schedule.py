@@ -27,7 +27,6 @@ options.add_argument('--headless')
 # chrome driver를 불러오고 위의 option을 적용시킴
 driver = webdriver.Chrome('/Users/chisanahn/Desktop/Python_Project/chromedriver.exe', options=options) #본인 컴퓨터에서 chromedrive가 있는 경로 입력
 
-
 class Student:
     __course_list={} #현재 수강 중인 과목의 이름과 교수님 목록 (과목명:교수님 형태)
     __schedule_list={} #현재 수강 중인 과목의 이름과 시간 목록 ('컴퓨터구조': '월08 ,09  수03 '와 같은 형태) // 추후 lectures_sorted_by_week에서 요일별로 강의 정리하기 위함
