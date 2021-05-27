@@ -24,9 +24,8 @@ options.add_argument('--incognito')
 options.add_argument('--headless')
 
 # chrome driver를 불러오고 위의 option을 적용시킴
-driver = webdriver.Chrome('/Users/이승현/chromedriver/chromedriver') #본인 컴퓨터에서 chromedrive가 있는 경로 입력
-# driver = webdriver.Chrome(
-#     '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe')
+driver = webdriver.Chrome(
+    '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe')
 
 class Student:
     __course_list={} #현재 수강 중인 과목의 이름과 교수님 목록 (과목명:교수님 형태)
