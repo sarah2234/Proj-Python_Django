@@ -14,7 +14,7 @@ https://wikidocs.net/70588 사이트 참고
 activate
 
 필요한 라이브러리 설치
->django, bs4, selenium 
+>django, bs4, selenium, pandas, datetime, schedule    
 4. 가상 환경에서 벗어나기
 >cd <가상 환경 디렉터리 경로>\\<가상환경이름>\\Scripts
 deactivate
