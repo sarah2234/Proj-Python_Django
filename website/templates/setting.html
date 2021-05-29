@@ -112,7 +112,27 @@
       </nav>
       <!-- End Navbar -->
       <div class="content">
-          설정 홈페이지
+          <div class="row">
+              <div class="col-md-12">
+<!--              과제 읽어오는 버튼-->
+                  <div>
+                      <form method="post" action="{% url 'time_table:load_timetable' %}">
+                          {% csrf_token %}
+                          <div class="form-group">
+                            <label for="username">학번</label>
+                            <input type="text" class="form-control" name="id_cieat" id="id_cieat"
+                                   value="{{ form.username.value|default_if_none:'' }}">
+                          </div>
+                          <div class="form-group">
+                              <label for="password">비밀번호</label>
+                              <input type="password" class="form-control" name="pswd_cieat" id="pswd_cieat"
+                                     value="{{ form.password.value|default_if_none:'' }}">
+                          </div>
+                          <button type="submit">시간표 읽어오기</button>
+                      </form>
+                  </div>
+              </div>
+          </div>
       </div>
         <footer class="footer" style="position: absolute; bottom: 0; width: -webkit-fill-available;">
             <div class="container-fluid">

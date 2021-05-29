@@ -1,16 +1,4 @@
 {% if data_list %}
-<!--  <ul>-->
-<!--    {% for data in data_list %}-->
-<!--    <li>{{ data.context_ellipsis }} {{ data.sort }}</li>-->
-<!--    {% endfor %}-->
-<!--  </ul>-->
-{% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
   <table class="table table-striped">
     <thead>
       <tr>
