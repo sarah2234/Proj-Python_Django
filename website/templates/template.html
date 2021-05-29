@@ -132,30 +132,11 @@
 <!--    week_schedule 시작-------------------------------------------------------------------->
         <div class="left">
           <div class="row">
-              <div class="col-md-12">
-<!--              과제 읽어오는 버튼-->
-                  <div>
-                      <form method="post" action="{% url 'time_table:crawling' %}">
-                          {% csrf_token %}
-                          <div class="form-group">
-                            <label for="username">학번</label>
-                            <input type="text" class="form-control" name="id" id="id"
-                                   value="{{ form.username.value|default_if_none:'' }}">
-                          </div>
-                          <div class="form-group">
-                              <label for="password">비밀번호</label>
-                              <input type="password" class="form-control" name="password" id="password"
-                                     value="{{ form.password.value|default_if_none:'' }}">
-                          </div>
-                          <button type="submit">공지사항 읽어오기</button>
-                      </form>
-                  </div>
-              </div>
             <div class="container">
               <div class="timetable-img text-center">
                   <img src="img/content/timetable.png" alt="">
               </div>
-              <div class="table-responsive"  style="overflow:auto; height: 65vh;">
+              <div class="table-responsive"  style="overflow:auto; height: 85vh;">
                   <table class="table table-bordered text-center">
                       <thead>
                       <tr class="bg-light-gray">
