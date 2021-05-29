@@ -22,12 +22,17 @@ options = webdriver.ChromeOptions()
 options.add_argument('--ignore-certificate-errors')
 options.add_argument('--incognito')
 options.add_argument('--headless')
+options.add_argument("disable-infobars")
+options.add_argument("--disable-extensions")
+options.add_argument("--disable-gpu")
+options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--no-sandbox")
 
 # chrome driver를 불러오고 위의 option을 적용시킴
 # driver = webdriver.Chrome()  # 본인 컴퓨터에서 chromedrive가 있는 경로 입력
 # 입력예시
 driver = webdriver.Chrome(
-    '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe',
+    '/home/ubuntu/venvs/mysite/bin/chromedriver',
     chrome_options=options)
 
 
