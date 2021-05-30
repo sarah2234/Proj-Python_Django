@@ -48,7 +48,7 @@
             </a>
           </li>
           <li class="active ">
-            <a href="{% url 'time_table:cieat' %}">
+            <a href="{% url 'time_table:cieat_interest' %}">
               <i class="nc-icon nc-diamond"></i>
               <p>씨앗</p>
             </a>
@@ -112,7 +112,34 @@
       </nav>
       <!-- End Navbar -->
       <div class="content">
-          씨앗에서 가져온 관심 분야 표시할 곳
+        <div class="col-md-12">
+          <h3 class="mt-0 mb-3 text-dark op-8 font-weight-bold">
+            씨앗 관심분야
+          </h3>
+        </div>
+        {% csrf_token %}
+        <div style="overflow:auto; height: 80vh;">
+          <table class="table table-striped">
+              <thead>
+              <tr>
+                  <th>비교과 활동</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr>
+                  <td>활동명</td><td>모집기간</td><td>활동기간</td><td>운영부서</td>
+              </tr>
+              {% for activity in activity_list %}
+              <tr>
+                  <td>{{ activity.name }}</td>
+                  <td>{{ activity.registration_date }}</td>
+                  <td>{{ activity.activity_date }}</td>
+                  <td>{{ activity.department }}</td>
+              </tr>
+              {% endfor %}
+              </tbody>
+          </table>
+        </div>
       </div>
         <footer class="footer" style="position: absolute; bottom: 0; width: -webkit-fill-available;">
             <div class="container-fluid">
