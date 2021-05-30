@@ -28,7 +28,7 @@ options.add_argument('--start-fullscreen')
 # driver = webdriver.Chrome()  # 본인 컴퓨터에서 chromedrive가 있는 경로 입력
 # 입력예시
 driver = webdriver.Chrome(
-    '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe',
+    '/home/ubuntu/venvs/mysite/bin/chromedriver',
     chrome_options=options)
 
 
