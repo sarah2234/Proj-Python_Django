@@ -23,3 +23,14 @@ class TimeTable(models.Model):
 
     def __str__(self):
         return self.subject + " - " + self.prof
+
+
+# 비교과 활동 저장할 모델
+class Activity(models.Model):
+    name = models.TextField()  # 활동명
+    registration_date = models.TextField()  # 모집기간
+    activity_date = models.TextField()  # 활동기간
+    department = models.TextField()  # 운영부서
+
+    def __str__(self):
+        return self.name

@@ -131,7 +131,7 @@ def interesting_CIEAT_activities_by_keyword(id, password, keyword):  # 과 이�
             try:
                 name = activity.find_element_by_tag_name('dt').text.strip()  # 활동명
                 if keyword in name:
-                    activity_detail=activity.find_elements_by_tag_name('dd')
+                    activity_detail = activity.find_elements_by_tag_name('dd')
                     registration_date=activity_detail[0].find_elements_by_tag_name('span')[1].text.strip()  # 모집 기간
                     activity_date=activity_detail[1].find_elements_by_tag_name('span')[1].text.strip()  # 활동 기간
                     department=activity.find_elements_by_tag_name('dd')[2].find_elements_by_tag_name('span')[1].text.strip()  # 운영부서, (부서이름)  # 운영 부서
