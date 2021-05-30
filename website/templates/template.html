@@ -218,14 +218,14 @@
                                               {{ data.start_h }}:00 ~ {{ data.end_h }}:00
                                           </span>
                                       </p>
-                                      <span class="text-primary">{{ data.subject }} - {{ data.prof }}교수님</span>
+                                      <span class="text-primary">{{ data.content }} - {{ data.name }}교수님</span>
                                   </li>
                                   {% else %}
                                   <li class="list-timeline-item p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column">
                                       <p class="my-0 text-dark flex-fw text-sm text-uppercase">
                                           <span class="text-inverse font-weight-bold op-8">{{ data.start_h }}:00 ~ {{ data.end_h }}:00</span>
                                       </p>
-                                      <span class="text-inverse op-8">{{ data.subject }} - {{ data.prof }}교수님</span>
+                                      <span class="text-inverse op-8">{{ data.content }} - {{ data.name }}교수님</span>
                                   </li>
                                   {% endif %}
                                   {% endfor %}
@@ -243,7 +243,7 @@
                               <ul class="list-timeline list-timeline-primary">
                                   {% for data in today_data %}
                                   {% if forloop.counter == 1 %}
-                                      {% if data.context_ellipsis == '사용자정의 일정' %}
+                                      {% if data.sort == '개인일정' %}
                                       <a href="{% url 'time_table:edit_schedule' data.id %}">
                                           <li class="list-timeline-item show p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column" data-toggle="collapse" data-target="#day-1-item-2">
                                               <p class="my-0 text-dark flex-fw text-sm text-uppercase">
@@ -253,8 +253,8 @@
                                                       {{ data.time }}
                                                   </span>
                                               </p>
-                                              <span class="text-dark text-inverse op-8">{{ data.context_ellipsis }}</span>
-                                              <span class="text-inverse op-8">: {{ data.name }}</span>
+                                              <span class="text-dark text-inverse op-8">{{ data.name }}</span>
+                                              <span class="text-inverse op-8">: {{ data.context }}</span>
                                           </li>
                                       </a>
                                       {% else %}
@@ -266,12 +266,12 @@
                                                   {{ data.time }}
                                               </span>
                                           </p>
-                                          <span class="text-dark text-inverse op-8">{{ data.context_ellipsis }}</span>
-                                          <span class="text-inverse op-8">: {{ data.name }}</span>
+                                          <span class="text-dark text-inverse op-8">{{ data.name }}</span>
+                                          <span class="text-inverse op-8">: {{ data.context }}</span>
                                       </li>
                                       {% endif %}
                                   {% else %}
-                                      {% if data.context_ellipsis == '사용자정의 일정' %}
+                                      {% if data.sort == '개인일정' %}
                                       <a href="{% url 'time_table:edit_schedule' data.id %}">
                                           <li class="list-timeline-item p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column">
                                               <p class="my-0 text-dark flex-fw text-sm text-uppercase">
@@ -279,8 +279,8 @@
                                                       {{ data.time }}
                                                   </span>
                                               </p>
-                                              <span class="text-dark text-inverse op-8">{{ data.context_ellipsis }}</span>
-                                              <span class="text-inverse op-8">: {{ data.name }}</span>
+                                              <span class="text-dark text-inverse op-8">{{ data.name }}</span>
+                                              <span class="text-inverse op-8">: {{ data.context }}</span>
                                           </li>
                                       </a>
                                       {% else %}
@@ -290,8 +290,8 @@
                                                   {{ data.time }}
                                               </span>
                                           </p>
-                                          <span class="text-dark text-inverse op-8">{{ data.context_ellipsis }}</span>
-                                          <span class="text-inverse op-8">: {{ data.name }}</span>
+                                          <span class="text-dark text-inverse op-8">{{ data.name }}</span>
+                                          <span class="text-inverse op-8">: {{ data.context }}</span>
                                       </li>
                                       {% endif %}
                                   {% endif %}
@@ -310,7 +310,7 @@
                           <div class="mb-3" id="Friday, Nov 13th">
                               {% for assignment in data_list %}
                               <ul class="list-timeline list-timeline-primary">
-                                  {% if assignment.context_ellipsis == '사용자정의 일정' %}
+                                  {% if assignment.sort == '개인일정' %}
                                   <a href="{% url 'time_table:edit_schedule' assignment.id %}">
                                       <li class="list-timeline-item p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column">
                                           <p class="my-0 text-dark flex-fw text-sm text-uppercase">
@@ -318,8 +318,8 @@
                                                   {{ assignment.time }}
                                               </span>
                                           </p>
-                                          <span class="text-dark text-inverse op-8">{{ assignment.context_ellipsis }}</span>
-                                          <span class="text-inverse op-8">: {{ assignment.name }}</span>
+                                          <span class="text-dark text-inverse op-8">{{ assignment.name }}</span>
+                                          <span class="text-inverse op-8">: {{ assignment.context }}</span>
                                       </li>
                                   </a>
                                   {% else %}
@@ -329,8 +329,8 @@
                                               {{ assignment.time }}
                                           </span>
                                       </p>
-                                      <span class="text-dark text-inverse op-8">{{ assignment.context_ellipsis }}</span>
-                                      <span class="text-inverse op-8">: {{ assignment.name }}</span>
+                                      <span class="text-dark text-inverse op-8">{{ assignment.name }}</span>
+                                      <span class="text-inverse op-8">: {{ assignment.context }}</span>
                                   </li>
                                   {% endif %}
                               </ul>

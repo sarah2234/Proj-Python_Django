@@ -47,9 +47,9 @@
                   <tbody>
                   {% for data in class %}
                   <tr>
-                      <td><label><input type="checkbox" name="delete_data" value={{data.id}}>{{ data.subject }}</label></td>
-                      <td>{{ data.prof }}</td>
-                      <td>{{ data.date }}요일 {{ data.start_h }}:00 ~ {{ data.end_h }}:00</td>
+                      <td><label><input type="checkbox" name="delete_data" value={{data.id}}>{{ data.context }}</label></td>
+                      <td>{{ data.name }}</td>
+                      <td>{{ data.content }}요일 {{ data.start_h }}:00 ~ {{ data.end_h }}:00</td>
                   </tr>
                   {% endfor %}
                   </tbody>
