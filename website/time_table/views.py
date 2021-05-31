@@ -92,6 +92,10 @@ def load_interest(request):
 
         user_major = [major, major_sub, major_multiple]
 
+        # 입력한 키워드 있으면 추가
+        if request.POST.get('keyword'):
+            user_major.append(request.POST.get('keyword'))
+
 # ------------------------- CIEAT에서 비교과 활동 읽어오기 ---------------------------
 
         driver.get('https://cieat.chungbuk.ac.kr/ncrProgramAppl/a/m/goProgramApplList.do')  # 비교과 신청 주소
