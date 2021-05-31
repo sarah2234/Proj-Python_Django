@@ -45,11 +45,13 @@
               {% csrf_token %}
 <!--          종류는 과제로 자동지정-->
               <p>제목</p>
-              <p><textarea name="name" id="name" rows="1" placeholder={{data.name}}></textarea></p>
+              <p><textarea name="name" id="name" rows="1">{{data.name}}</textarea></p>
               <p>세부사항</p>
-              <p><textarea name="content" id="content" rows="5" placeholder={{data.context}}></textarea></p>
-              <p>시간: {{ data.time }}</p>
-              <input type="date" name="date" id="date"> <input type="time" name="time" id="time"></p>
+              <p><textarea name="content" id="content" rows="5">{{data.context}}</textarea></p>
+              <p>시간: {{data.content}} {{data.time}}부터 {{data.end_h}}:00까지</p>
+<!--              날짜랑 시간 기본값을 변수로 지정하는 방법을 잘 모르겠다-->
+              <p><input type="date" name="date" id="date"></p>
+              <p><input type="time" name="start_h" id="start_h">부터 <input type="time" name="end_h" id="end_h">까지</p>
               <button type="submit">일정 수정하기</button>
           </form>
           <form method="post" action="{% url 'time_table:delete_function' data.id %}">

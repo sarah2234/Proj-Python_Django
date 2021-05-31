@@ -9,7 +9,10 @@ class Data(models.Model):
     content = models.TextField()            # 요일, 내용, 요일
     time = models.DateTimeField(null=True)  # null, 마감일, 일정시간
     start_h = models.IntegerField(null=True)         # 시작시간, null, 시작시간
-    end_h = models.IntegerField(null=True)           # 시작시간, null, 시작시간
+    end_h = models.IntegerField(null=True)           # 끝시간, null, 끝시간
+    # start_m = models.IntegerField(null=True)         # 시작시간, null, 시작시간
+    # end_m = models.IntegerField(null=True)           # 시작시간, null, 시작시간
+    valid = models.IntegerField(default=1)  # 제출 기한 전에 완료한 과제 표시하지 않기
 
     def __str__(self):
         return self.sort + " " + self.name + " " + self.context

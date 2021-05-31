@@ -9,13 +9,19 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, UnexpectedAlertPresentException, NoSuchElementException
 
 from django.shortcuts import render, redirect
-from datetime import datetime
+from datetime import datetime, timedelta
+from pytz import timezone, utc
+
 from .models import Data, Activity
+from django.db.models import Q
 import re
 
 import pandas as pd  # 엑셀을 다루는 라이브러리 pandas
 from selenium.webdriver.common.keys import Keys
 import time
+
+# 한국 시간대 사용
+kst = timezone('Asia/Seoul')
 
 # 창 띄우지 않는 설정. background에서 동작.
 options = webdriver.ChromeOptions()
@@ -296,16 +302,19 @@ def add_schedule(request):
     return render(request, 'time_table/add_schedule.html')
 
 
-# 개인일정 시작시간 끝시간 입력받아서 start_h, end_h에 저장
+# 지금은 특정 날짜, 시간만 입력받을 수 있는데 추후에 요일별 반복 기능도 추가하기.
 def add_function(request):
     name = request.POST.get('name')
     content = request.POST.get('content')
     date = request.POST.get('date')
-    time = request.POST.get('time')
-    time_input = "".join([date, "-", time])
-    if Data.objects.filter(sort='개인일정', name=name, context=content).count() == 0:
-        Data(sort='개인일정', name=name, context=content, content=date,
-             time=datetime.strptime(time_input, '%Y-%m-%d-%H:%M')).save()
+    start_h = request.POST.get('start_h')
+    end_h = request.POST.get('end_h')
+    time_input = "".join([date, "-", start_h])
+    time = datetime.strptime(time_input, '%Y-%m-%d-%H:%M').replace(tzinfo=kst)
+    if Data.objects.filter(sort='개인일정', name=name, context=content, content=date_list[time.weekday()],
+             time=time, start_h=int(start_h.split(":")[0]), end_h=int(end_h.split(":")[0])).count() == 0:
+        Data(sort='개인일정', name=name, context=content, content=date_list[time.weekday()],
+             time=time, start_h=int(start_h.split(":")[0]), end_h=int(end_h.split(":")[0])).save()
     return redirect('time_table:schedule')
 
 
@@ -325,10 +334,12 @@ def edit_function(request, data_id):
     name = request.POST.get('name')
     content = request.POST.get('content')
     date = request.POST.get('date')
-    time = request.POST.get('time')
-    time_input = "".join([date, "-", time])
-    Data(sort='개인일정', name=name, context=content, content=date,
-         time=datetime.strptime(time_input, '%Y-%m-%d-%H:%M')).save()
+    start_h = request.POST.get('start_h')
+    end_h = request.POST.get('end_h')
+    time_input = "".join([date, "-", start_h])
+    time = datetime.strptime(time_input, '%Y-%m-%d-%H:%M').replace(tzinfo=kst)
+    Data(sort='개인일정', name=name, context=content, content=date_list[time.weekday()],
+         time=time, start_h=int(start_h.split(":")[0]), end_h=int(end_h.split(":")[0])).save()
     return redirect('time_table:schedule')
 
 
@@ -341,6 +352,61 @@ def load(request):
     return redirect('time_table:schedule')
 
 
+def delete_assignment(request, data_id):
+    t = Data.objects.get(id=data_id)
+    t.valid = 0
+    t.save()
+    return redirect('time_table:schedule')
+
+
+def assignment_schedule(request, assignment_id):
+    assignment = Data.objects.get(id=assignment_id)
+    context = {'assignment': assignment}
+    return render(request, 'time_table/assignment_schedule.html', context)
+
+
+def available_time(request, assignment_id):
+    # schedule 함수랑 비슷하게 오늘부터 과제 마감일까지 시간표, 개인일정 쭉 읽어오는데
+    # 요일, 시간에 항목이 있으면 count = 0, 없으면 count++해서 count == need_time이면 일정 생성.
+    # count = 0일때 start_h 업데이트
+    assignment = Data.objects.get(id=assignment_id)
+    name = "".join([assignment.context, " 과제하기"])
+    content = assignment.name
+
+    need_time = int(request.POST.get('need_time'))
+    # 일정 생성할때 고려할 시간범위. 추후에 사용자한테서 입력받아오도록 수정.
+    time_list = range(8, 18)
+    now = datetime.now().replace(tzinfo=kst)
+    count = 0
+    while True:
+        now = now + timedelta(days=1)
+        # 과제 기한을 넘어가면 종료
+        if now > assignment.time:
+            print('과제할 시간이 없습니다.')
+            return redirect('time_table:schedule')
+        now_date = date_list[now.weekday()]
+        for _time in time_list:
+            temp = Data.objects.filter(Q(sort='시간표', content=now_date, start_h__lte=_time, end_h__gt=_time) | Q(sort='개인일정', content=now_date, start_h__lte=_time, end_h__gt=_time))
+            if temp:
+                count = 0
+            else:
+                if count == 0:
+                    start_h = _time
+                count = count+1
+            print(temp)
+            print(count)
+            print(start_h)
+            if count == need_time:
+                time_input = "".join([str(now.year), "-", str(now.month), "-", str(now.day), "-", str(start_h), ":00"])
+                # 이미 이 과제에 대한 일정이 있을 경우 삭제하고 추가
+                if Data.objects.filter(sort='개인일정', name=name, context=content).count() != 0:
+                    Data.objects.filter(sort='개인일정', name=name, context=content).delete()
+                Data(sort='개인일정', name=name, context=content, content=now_date,
+                     time=datetime.strptime(time_input, '%Y-%m-%d-%H:%M'),
+                     start_h=start_h, end_h=start_h+need_time).save()
+                return redirect('time_table:schedule')
+
+
 def schedule(request):
     now = datetime.now()
     now_date = date_list[datetime.today().weekday()]
@@ -348,17 +414,13 @@ def schedule(request):
     # 날짜 지난 과제 삭제
     Data.objects.filter(sort='과제', time__lt=now).delete()
     # 날짜 지난 일정 삭제
-    Data.objects.filter(sort='개인일정', time__lt=now).delete()
+    Data.objects.filter(sort='개인일정', time__lt=now, end_h__lt=now.hour).delete()
 
     # list_schedule. 시간 순서대로 정렬.
     today_s = datetime(now.year, now.month, now.day)
-    # 오늘 날짜 개인일정 불러오기
-    today_data = Data.objects.filter(sort='개인일정', time__gte=today_s).order_by('time')
-    # 오늘 날짜 시간표 불러오기
-    today_class = Data.objects.filter(sort='시간표', content=now_date)
-
-    # 같은 날짜끼리 묶어서 저장.
-    list_schedule = []
+    today_e = datetime(now.year, now.month, now.day, 23, 59)
+    # 오늘 시간표, 일정 합쳐서 불러오기
+    today_list = Data.objects.filter(Q(sort='시간표', content=now_date, end_h__gte=now.hour) | Q(sort='개인일정', time__lte=today_e)).order_by('start_h')
 
     # time_table
     time_list = ["09", "10", "11", "12", "13", "14", "15", "16", "17"]
@@ -377,11 +439,10 @@ def schedule(request):
         time_table.append({time: sametime})  # 시간이랑 요일별로 묶어서 저장한거 딕셔너리로 함께 저장
 
     # 앞으로 남은 과제 읽어오기, 개인일정도 같이 읽어올 수 있도록 수정하기.
-    data_list = Data.objects.filter(sort='과제', time__gte=today_s).order_by('time')
+    data_list = Data.objects.filter(Q(sort='과제', time__gte=today_s) | Q(sort='개인일정', time__gt=today_e)).order_by('time')
 
-    context = {'now': now, 'date': now_date,
-               'today_data': today_data, 'today_class': today_class,
-               'time_table': time_table, 'data_list': data_list}
+    context = {'now': now, 'date': now_date, 'today_list': today_list,
+               'time_table': time_table, 'data_list': data_list, 'today_e': today_e}
 
     return render(request, 'template.html', context)
 
@@ -479,7 +540,7 @@ def crawling(request):
                         if Data.objects.filter(sort='과제', context=context_ellipsis, name=name,
                                                content=content).count() == 0:
                             Data(sort='과제', context=context_ellipsis, name=name,
-                                 content=content, time=datetime.strptime(time_input, '%Y-%m-%d-%H:%M')).save()
+                                 content=content, time=datetime.strptime(time_input, '%Y-%m-%d-%H:%M').replace(tzinfo=kst)).save()
                     # 과제 외의 일정 일단 주석처리
                     # else:
                     #     if Data.objects.filter(sort=sort, context_ellipsis=context_ellipsis, name=name,
@@ -535,7 +596,7 @@ def crawling(request):
                         if Data.objects.filter(sort='과제', context=context_ellipsis, name=name,
                                                content=content).count() == 0:
                             Data(sort='과제', context=context_ellipsis, name=name,
-                                 content=content, time=datetime.strptime(time_input, '%Y-%m-%d-%H:%M')).save()
+                                 content=content, time=datetime.strptime(time_input, '%Y-%m-%d-%H:%M').replace(tzinfo=kst)).save()
                     # 과제 외의 일정 일단 주석처리
                     # else:
                     #     if Data.objects.filter(sort=sort, context_ellipsis=context_ellipsis, name=name,
