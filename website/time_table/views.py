@@ -12,7 +12,7 @@ from django.shortcuts import render, redirect
 from datetime import datetime, timedelta
 from pytz import timezone, utc
 
-from .models import Data, Activity
+from .models import Data, Activity, Profile
 from django.db.models import Q
 import re
 
@@ -55,8 +55,8 @@ def load_interest(request):
         try:
             driver.find_element_by_class_name('btn_login').click()  # CIEAT 로그인 버튼
             element = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, 'loginForm')))
-            driver.find_element_by_name('userId').send_keys(request.POST.get('id_cieat2'))  # 입력받은 학번으로 로그인
-            driver.find_element_by_name('userPw').send_keys(request.POST.get('pswd_cieat2'))  # 입력받은 비밀번호로 로그인
+            driver.find_element_by_name('userId').send_keys(Profile.objects.get(user=request.user).student_ID)  # 입력받은 학번으로 로그인
+            driver.find_element_by_name('userPw').send_keys(Profile.objects.get(user=request.user).CBNU_PW)  # 입력받은 비밀번호로 로그인
             driver.find_element_by_class_name('btn_login_submit').click()
         except UnexpectedAlertPresentException:  # 유저 정보 오기입
             print("학번과 비밀번호를 확인해주십시오.")
@@ -90,8 +90,7 @@ def load_interest(request):
         major_sub = major2[0].rstrip()  # 복수전공이나 부전공을 안 해서 씨앗에서 어떻게 표시되는지 잘 모르겠음...
         major_multiple = major2[1].rstrip()
 
-        # user_departments = [major, major_sub, major_multiple]
-        user_major = ["SW중심대학사업단", major_sub, major_multiple]
+        user_major = [major, major_sub, major_multiple]
 
 # ------------------------- CIEAT에서 비교과 활동 읽어오기 ---------------------------
 
@@ -116,7 +115,6 @@ def load_interest(request):
                 try:
                     department = activity.find_elements_by_tag_name('dd')[2].find_elements_by_tag_name('span')[
                         1].text.strip()  # 운영부서, (부서이름)
-                    print(department)
                     for user_department in user_major:
                         if department in user_department:
                             name = activity.find_element_by_tag_name('dt').find_element_by_tag_name('a').text.strip()  # 활동명
@@ -170,8 +168,8 @@ def load_timetable(request):
         try:
             driver.find_element_by_class_name('btn_login').click()  # CIEAT 로그인 버튼
             element = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, 'loginForm')))
-            driver.find_element_by_name('userId').send_keys(request.POST.get('id_cieat'))  # 입력받은 학번으로 로그인
-            driver.find_element_by_name('userPw').send_keys(request.POST.get('pswd_cieat'))  # 입력받은 비밀번호로 로그인
+            driver.find_element_by_name('userId').send_keys(Profile.objects.get(user=request.user).student_ID)  # 입력받은 학번으로 로그인
+            driver.find_element_by_name('userPw').send_keys(Profile.objects.get(user=request.user).CBNU_PW)  # 입력받은 비밀번호로 로그인
             driver.find_element_by_class_name('btn_login_submit').click()
         except UnexpectedAlertPresentException:  # 유저 정보 오기입
             print("학번과 비밀번호를 확인해주십시오.")
@@ -458,8 +456,8 @@ def crawling(request):
             element = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.NAME, "uid")))
             # 로그인 되어있지 않는 경우 로그인
-            driver.find_element_by_name('uid').send_keys(request.POST.get('id'))  # 학번
-            driver.find_element_by_name('pswd').send_keys(request.POST.get('password'))  # Blackboard 비밀번호
+            driver.find_element_by_name('uid').send_keys(Profile.objects.get(user=request.user).student_ID)  # 학번
+            driver.find_element_by_name('pswd').send_keys(Profile.objects.get(user=request.user).CBNU_PW)  # Blackboard 비밀번호
             driver.find_element_by_xpath('//*[@id="entry-login"]').click()
         except TimeoutException:
             print('로그인상태')
