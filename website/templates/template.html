@@ -187,6 +187,13 @@
         <div class="right">
           <div class="row">
               <div class="col-md-12">
+<!--              과제 읽어오기-->
+                  <div>
+                      <form method="post" action="{% url 'time_table:crawling' %}">
+                          {% csrf_token %}
+                          <button type="submit">과제 읽어오기</button>
+                      </form>
+                  </div>
 <!--              일정 추가하는 버튼-->
                   <div>
                       <form method="post" action="{% url 'time_table:add_schedule' %}">

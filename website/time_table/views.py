@@ -123,8 +123,6 @@ def cieat_submit(request):
 
                     except NoSuchElementException:
                         pass
-                    except UnexpectedAlertPresentException:
-                        pass
 
                 # 페이지의 아랫 부분
                 driver.find_element_by_tag_name('body').send_keys(Keys.PAGE_DOWN)
@@ -554,6 +552,7 @@ def available_time(request, assignment_id):
 
 
 def schedule(request):
+# ---------------- 일정들 DB에서 불러와서 출력 ------------------------
     now = datetime.now()
     now_date = date_list[datetime.today().weekday()]
 
@@ -589,6 +588,8 @@ def schedule(request):
 
     context = {'now': now, 'date': now_date, 'today_list': today_list,
                'time_table': time_table, 'data_list': data_list, 'today_e': today_e}
+
+# ---------------- link to zoom ------------------------
 
     return render(request, 'template.html', context)
 
