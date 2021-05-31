@@ -15,6 +15,7 @@ from pytz import timezone, utc
 from .models import Data, Activity
 from django.db.models import Q
 import re
+import os
 
 import pandas as pd  # 엑셀을 다루는 라이브러리 pandas
 from selenium.webdriver.common.keys import Keys
@@ -29,14 +30,12 @@ options.add_argument('--ignore-certificate-errors')
 options.add_argument('--incognito')
 options.add_argument('--headless')
 options.add_argument('--start-fullscreen')
+options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 
 # chrome driver를 불러오고 위의 option을 적용시킴
 # driver = webdriver.Chrome()  # 본인 컴퓨터에서 chromedrive가 있는 경로 입력
 # 입력예시
-driver = webdriver.Chrome(
-    '/home/ubuntu/venvs/mysite/bin/chromedriver',
-    chrome_options=options)
-
+driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=options)
 
 date_list = ['월', '화', '수', '목', '금', '토', '일']
 
