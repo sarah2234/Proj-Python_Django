@@ -22,5 +22,5 @@ urlpatterns = [
     path('setting/timetable/choose', views.choose_timetable, name='choose_timetable'),
     path('cieat_interest', views.cieat_interest, name='cieat_interest'),
     path('cieat_interest/load', views.load_interest, name='load_interest'),
-
+    path('cieat_interest/submit', views.cieat_submit, name='cieat_submit'),
 ]

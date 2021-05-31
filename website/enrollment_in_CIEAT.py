@@ -17,7 +17,10 @@ options.add_argument('--incognito')
 options.add_argument('--headless')
 options.add_argument('--start-fullscreen')
 
-driver=webdriver.Chrome('/Users/이승현/chromedriver/chromedriver', options=options)  # 본인 컴퓨터에서 chromedrive가 있는 경로 입력
+driver = webdriver.Chrome(
+    '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe',
+    chrome_options=options)
+
 
 def interesting_CIEAT_activities_by_major(id, password, operating_department):  # 과 이름으로 비교과 활동 찾기
     if operating_department == '-':  # 없는 경우
@@ -229,7 +232,7 @@ def go_to_CIEAT_activity_page(id, password, name_of_interesting_activity):  # �
         activities = driver.find_elements_by_class_name('program_lisbox')  # 비교과 활동들 전부 찾기
         for index, activity in enumerate(activities):
             try:
-                name=activity.find_element_by_tag_name('dt')  # 활동명
+                name = activity.find_element_by_tag_name('dt')  # 활동명
                 if name_of_interesting_activity in name.text.strip():
                     activity.find_element_by_tag_name('a').send_keys(Keys.ENTER)  # 전공과 관련있는 비교과 활동일 때
 
