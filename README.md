@@ -14,7 +14,8 @@ https://wikidocs.net/70588 사이트 참고
 activate
 
 필요한 라이브러리 설치
->django, bs4, selenium, pandas, datetime, schedule, openpyxl    
+>django, bs4, selenium, pandas, datetime, schedule, openpyxl, (이후 3개는 heroku용)gunicorn, django-heroku, psycopg2  
+>(자세한 건 requirements.txt)      
 4. 가상 환경에서 벗어나기
 >cd <가상 환경 디렉터리 경로>\\<가상환경이름>\\Scripts
 deactivate
@@ -86,4 +87,44 @@ git/github 관련 안내
 - 커밋 메시지 수정
 >\$git commit -amend
 - 브랜치 제거
->\$git branch -d <브랜치명>##### Online Educational Program for University Students
+>\$git branch -d <브랜치명>##### Online Educational Program for University Students   
+----
+Heroku 서버 구축 방법
+====================
+루트 디렉토리 내에서 추가해야할 사항들 (새로 생성한 파일들은 반드시 루트 디렉토리에 위치시켜야 함)
+------------------------------------------------------------------------------------------
+* Procfile
+  * vs code와 같은 텍스트 편집기를 사용하여 web: gunicorn (프로젝트 이름).wsgi 입력
+  * 확장자는 없음 (.txt를 붙이면 안됨)
+  * 제대로 생성하지 않으면 heroku에서 dyno가 생성되지 않아 web이 실행되지 않음
+* requirements.txt
+  * cmd에서 pip freeze>requirements.txt 커맨드 입력
+  * 필요한 라이브러리 모두 포함
+* runtime.txt
+  * 사용하고 있는 python의 버전에 대한 정보 기입 (python-3.9.4)
+* Pipfile
+  * recreating Pipfile: https://stackoverflow.com/questions/56188440/python-3-how-do-you-re-create-your-pipfile
+* setup.py
+  * https://www.jetbrains.com/help/pycharm/creating-and-running-setup-py.html
+* views.py
+  * chromedriver options 중에서 --no-sandbox를 반드시 추가해야함 (해당 옵션은 크롬의 보안과 관련된 옵션)   
+  * import os 한 후 os.environ.get("GOOGLE_CHROME_BIN"), os.environ.get("CHROMEDRIVER_PATH")로 크롬과 크롬 드라이버 경로 지정
+* settings.py
+  * ALLOWED_HOSTS, STATIC_ROOT, 마지막 줄에 django_heroku.settings(locals()) 추가 (https://www.youtube.com/watch?v=6DI_7Zja8Zc&t=2723s)  
+ 
+ Heroku Commands (Heroku CLI 설치 필수)
+ --------------------------------------------------
+ * 헤로쿠 로그인: heroku login
+ * git remote에 헤로쿠 추가: heroku git:remote -a (name of your app)
+ * 데이터베이스 구축: heroku run python manage.py migrate
+ * 관리자 계정 생성: heroku run python manage.py createsuperuser
+ * 페이지 오픈: heroku open
+ * dyno  연결: heroku ps:scale web=1
+ * git heroku push master로 heroku에 바로 푸쉬가 가능하지만 빈번한 에러로 추천하지 않음
+   * 대신 GitHub와  연동하여 자동/수동으로 deploy할 수 있는 기능 > heroku의 deploy 탭에서 설정 가능
+ * 에러 확인: heroku logs --tail (ctrl+c로 종료)   
+ 
+ 그 외 Heroku 설정 사항
+ --------------------------------------------------
+ * heroku의 setting 탭에서 config vars & buildpack 추가 (https://eunjin3786.tistory.com/361)
+ * admin 페이지: https://opensourceproject03.herokuapp.com/admin/
