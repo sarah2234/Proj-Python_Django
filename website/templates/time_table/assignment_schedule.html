@@ -38,25 +38,21 @@
           </div>
           <div class="mb-3">
               <h3 class="mt-0 mb-3 text-dark op-8 font-weight-bold">
-                  일정 추가
+                  {{assignment.context}}: {{assignment.name}}
               </h3>
+              <h5 class="mt-0 mb-3 text-dark op-8 font-weight-bold">
+                  추천 일정
+              </h5>
           </div>
+<!--          과제하는데 걸리는 시간 입력하기 -->
           <div>
-              <form method="post" action="{% url 'time_table:add_function' %}">
+              <form method="post" action="{% url 'time_table:available_time' assignment.id %}">
                   {% csrf_token %}
-<!--                  종류는 개인일정로 자동지정-->
-                  <p>제목</p>
-                  <p><textarea name="name" id="name" rows="1"></textarea></p>
-                  <p>세부사항</p>
-                  <p><textarea name="content" id="content" rows="5"></textarea></p>
-                  <p>시간</p>
-                  <p><input type="date" name="date" id="date"></p>
-                  <p><input type="time" name="start_h" id="start_h">부터 <input type="time" name="end_h" id="end_h">까지</p>
-
-                  <button type="submit">일정 추가하기</button>
+                  <p>과제 하는데 필요한 시간</p>
+                  <p><input type="number" min="0" max="24" step="1" name="need_time" id="need_time"></p>
+                  <button type="submit">추천 일정 생성하기</button>
               </form>
           </div>
-
       </div>
         <footer class="footer" style="position: absolute; bottom: 0; width: -webkit-fill-available;">
             <div class="container-fluid">

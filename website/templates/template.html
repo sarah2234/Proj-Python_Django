@@ -163,9 +163,9 @@
                           <td>
           <!--                    시간표 과목별 색깔 설정 - 과목에 따라서 span class 변경-->
           <!--                    사용자 정의 템플릿 필터 써야 되려나-->
-                              <span class="bg-yellow padding-5px-tb padding-15px-lr border-radius-5 margin-10px-bottom text-white font-size16 xs-font-size13">{{subject.subject}}</span>
+                              <span class="bg-yellow padding-5px-tb padding-15px-lr border-radius-5 margin-10px-bottom text-white font-size16 xs-font-size13">{{subject.context}}</span>
                               <div class="margin-10px-top font-size14">{{ sametime|key }}:00 </div>
-                              <div class="font-size13 text-light-gray">{{subject.prof}}</div>
+                              <div class="font-size13 text-light-gray">{{subject.name}}</div>
                           </td>
                           {% endfor %}
                           {% else %}
@@ -204,29 +204,60 @@
                               <h3 class="mt-0 mb-3 text-dark op-8 font-weight-bold">
                                   {{now.month}}월 {{now.day}}일({{date}}) {{now.hour}}:{{now.minute}}
                               </h3>
-<!--                          오늘의 시간표 추가-->
+<!--                          오늘 시간표, 개인일정 표시-->
                               <ul class="list-timeline list-timeline-primary">
-                                  {% if today_class %}
-                                  {% for data in today_class %}
+                                  {% if today_list %}
+                                  {% for data in today_list %}
 <!--                              첫번째 일정 강조해서 표시-->
                                   {% if forloop.counter == 1 %}
-                                  <li class="list-timeline-item show p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column" data-toggle="collapse" data-target="#day-1-item-2">
-                                      <p class="my-0 text-dark flex-fw text-sm text-uppercase">
-<!--                                      span class="text-primary" 글자색 파란색으로 강조-->
-                                          <span class="text-primary font-weight-bold op-8 infinite animated flash" data-animate="flash" data-animate-infinite="1"
-                                                data-animate-duration="3.5" style="animation-duration: 3.5s;">
-                                              {{ data.start_h }}:00 ~ {{ data.end_h }}:00
-                                          </span>
-                                      </p>
-                                      <span class="text-primary">{{ data.subject }} - {{ data.prof }}교수님</span>
-                                  </li>
+<!--                                  data sort(시간표, 개인일정, 과제)에 맞는 형식으로 출력-->
+                                      {% if data.sort == '시간표' %}
+                                          <li class="list-timeline-item show p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column" data-toggle="collapse" data-target="#day-1-item-2">
+                                              <p class="my-0 text-dark flex-fw text-sm text-uppercase">
+        <!--                                      span class="text-primary" 글자색 파란색으로 강조-->
+                                                  <span class="text-primary font-weight-bold op-8 infinite animated flash" data-animate="flash" data-animate-infinite="1"
+                                                        data-animate-duration="3.5" style="animation-duration: 3.5s;">
+                                                      {{ data.start_h }}:00 ~ {{ data.end_h }}:00
+                                                  </span>
+                                              </p>
+                                              <span class="text-primary">{{ data.context }} - {{ data.name }}교수님</span>
+                                          </li>
+                                      {% elif data.sort == '개인일정' %}
+                                      <a href="{% url 'time_table:edit_schedule' data.id %}">
+                                          <li class="list-timeline-item show p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column" data-toggle="collapse" data-target="#day-1-item-2">
+                                              <p class="my-0 text-dark flex-fw text-sm text-uppercase">
+    <!--                                           span class="text-primary" 글자색 파란색으로 강조-->
+                                                  <span class="text-primary font-weight-bold op-8 infinite animated flash" data-animate="flash" data-animate-infinite="1"
+                                                        data-animate-duration="3.5" style="animation-duration: 3.5s;">
+                                                      {{ data.start_h }}:00 ~ {{ data.end_h }}:00
+                                                  </span>
+                                              </p>
+                                              <span class="text-dark text-inverse op-8">{{ data.name }}</span>
+                                              <span class="text-inverse op-8">: {{ data.context }}</span>
+                                          </li>
+                                      </a>
+                                      {% endif %}
                                   {% else %}
-                                  <li class="list-timeline-item p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column">
-                                      <p class="my-0 text-dark flex-fw text-sm text-uppercase">
-                                          <span class="text-inverse font-weight-bold op-8">{{ data.start_h }}:00 ~ {{ data.end_h }}:00</span>
-                                      </p>
-                                      <span class="text-inverse op-8">{{ data.subject }} - {{ data.prof }}교수님</span>
-                                  </li>
+                                      {% if data.sort == '시간표' %}
+                                      <li class="list-timeline-item p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column">
+                                          <p class="my-0 text-dark flex-fw text-sm text-uppercase">
+                                              <span class="text-inverse font-weight-bold op-8">{{ data.start_h }}:00 ~ {{ data.end_h }}:00</span>
+                                          </p>
+                                          <span class="text-inverse op-8">{{ data.context }} - {{ data.name }}교수님</span>
+                                      </li>
+                                      {% elif data.sort == '개인일정' %}
+                                      <a href="{% url 'time_table:edit_schedule' data.id %}">
+                                          <li class="list-timeline-item p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column">
+                                              <p class="my-0 text-dark flex-fw text-sm text-uppercase">
+                                                  <span class="text-inverse font-weight-bold op-8">
+                                                      {{ data.start_h }}:00 ~ {{ data.end_h }}:00
+                                                  </span>
+                                              </p>
+                                              <span class="text-dark text-inverse op-8">{{ data.name }}</span>
+                                              <span class="text-inverse op-8">: {{ data.context }}</span>
+                                          </li>
+                                      </a>
+                                      {% endif %}
                                   {% endif %}
                                   {% endfor %}
                                   {% else %}
@@ -237,103 +268,70 @@
                                   </li>
                                   {% endif %}
                               </ul>
-<!--      오늘까지인 과제, 일정 표시-->
-<!--      추후에 과제랑 수업시간 합쳐서 정렬하도록 수정. 지금은 수업 먼저 출력하고 따로 과제를 출력한다.-->
-                              {% if today_data %}
-                              <ul class="list-timeline list-timeline-primary">
-                                  {% for data in today_data %}
-                                  {% if forloop.counter == 1 %}
-                                      {% if data.context_ellipsis == '사용자정의 일정' %}
-                                      <a href="{% url 'time_table:edit_schedule' data.id %}">
-                                          <li class="list-timeline-item show p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column" data-toggle="collapse" data-target="#day-1-item-2">
-                                              <p class="my-0 text-dark flex-fw text-sm text-uppercase">
-    <!--                                           span class="text-primary" 글자색 파란색으로 강조-->
-                                                  <span class="text-primary font-weight-bold op-8 infinite animated flash" data-animate="flash" data-animate-infinite="1"
-                                                        data-animate-duration="3.5" style="animation-duration: 3.5s;">
-                                                      {{ data.time }}
-                                                  </span>
-                                              </p>
-                                              <span class="text-dark text-inverse op-8">{{ data.context_ellipsis }}</span>
-                                              <span class="text-inverse op-8">: {{ data.name }}</span>
-                                          </li>
-                                      </a>
-                                      {% else %}
-                                      <li class="list-timeline-item show p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column" data-toggle="collapse" data-target="#day-1-item-2">
+                          </div>
+                      </div>
+                      <h1 class="text-uppercase text-letter-spacing-xs my-0 text-primary font-weight-bold">Upcoming</h1>
+<!--                <p class="text-sm text-dark mt-0">앞으로 해야되는거</p>-->
+<!--                앞으로의 과제, 개인일정 표시 / 마감기한이 오늘까지인 과제들은 파란색으로 강조해서 보여주기 -->
+                      {% if data_list %}
+                      <div>
+                          <div class="mb-3" id="Friday, Nov 13th">
+                              {% for data in data_list %}
+                              {% if data.time < today_e %}
+                                  {% if data.sort == '과제' %}
+                                  {% if data.valid == 1 %}
+                                  <li class="list-timeline-item show p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column" data-toggle="collapse" data-target="#day-1-item-2">
+                                      <a href="{% url 'time_table:assignment_schedule' data.id %}">
                                           <p class="my-0 text-dark flex-fw text-sm text-uppercase">
-    <!--                                           span class="text-primary" 글자색 파란색으로 강조-->
+        <!--                                      span class="text-primary" 글자색 파란색으로 강조-->
                                               <span class="text-primary font-weight-bold op-8 infinite animated flash" data-animate="flash" data-animate-infinite="1"
                                                     data-animate-duration="3.5" style="animation-duration: 3.5s;">
                                                   {{ data.time }}
                                               </span>
                                           </p>
-                                          <span class="text-dark text-inverse op-8">{{ data.context_ellipsis }}</span>
-                                          <span class="text-inverse op-8">: {{ data.name }}</span>
-                                      </li>
-                                      {% endif %}
-                                  {% else %}
-                                      {% if data.context_ellipsis == '사용자정의 일정' %}
-                                      <a href="{% url 'time_table:edit_schedule' data.id %}">
-                                          <li class="list-timeline-item p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column">
-                                              <p class="my-0 text-dark flex-fw text-sm text-uppercase">
-                                                  <span class="text-inverse font-weight-bold op-8">
-                                                      {{ data.time }}
-                                                  </span>
-                                              </p>
-                                              <span class="text-dark text-inverse op-8">{{ data.context_ellipsis }}</span>
-                                              <span class="text-inverse op-8">: {{ data.name }}</span>
-                                          </li>
+                                          <span class="text-primary">{{ data.name }</span>
+                                          <span class="text-primary">{{ data.context }}</span>
                                       </a>
-                                      {% else %}
+                                      <form method="post" action="{% url 'time_table:delete_assignment' data.id %}">
+                                          {% csrf_token %}
+                                          <button type="submit">과제 끝!</button>
+                                      </form>
+                                  </li>
+                                  {% endif %}
+                                  {% endif %}
+                              {% else %}
+                                  {% if data.sort == '과제' %}
+                                  {% if data.valid == 1 %}
+                                  <li class="list-timeline-item p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column">
+                                      <a href="{% url 'time_table:assignment_schedule' data.id %}">
+                                          <p class="my-0 text-dark flex-fw text-sm text-uppercase">
+                                              <span class="text-inverse font-weight-bold op-8">
+                                                  {{ data.time }}
+                                              </span>
+                                          </p>
+                                          <span class="text-dark text-inverse op-8">{{ data.name }}</span>
+                                          <span class="text-inverse op-8">: {{ data.context }}</span>
+                                      </a>
+                                      <form method="post" action="{% url 'time_table:delete_assignment' data.id %}">
+                                          {% csrf_token %}
+                                          <button type="submit">과제 끝!</button>
+                                      </form>
+                                  </li>
+                                  {% endif %}
+                                  {% elif data.sort == '개인일정' %}
+                                  <a href="{% url 'time_table:edit_schedule' data.id %}">
                                       <li class="list-timeline-item p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column">
                                           <p class="my-0 text-dark flex-fw text-sm text-uppercase">
                                               <span class="text-inverse font-weight-bold op-8">
                                                   {{ data.time }}
                                               </span>
                                           </p>
-                                          <span class="text-dark text-inverse op-8">{{ data.context_ellipsis }}</span>
-                                          <span class="text-inverse op-8">: {{ data.name }}</span>
-                                      </li>
-                                      {% endif %}
-                                  {% endif %}
-                                  {% endfor %}
-                                  {% endif %}
-                              </ul>
-                          </div>
-                      </div>
-                      <h1 class="text-uppercase text-letter-spacing-xs my-0 text-primary font-weight-bold">Upcoming</h1>
-<!--                <p class="text-sm text-dark mt-0">앞으로 해야되는거</p>-->
-<!--                과제 DB에서 출력 -->
-<!--                추후에 같은 날짜에 있는 과제들은 묶어서 출력하도록 수정할 것-->
-<!--                추후에 시간 순서대로 출력되도록 수정할 것-->
-                      {% if data_list %}
-                      <div>
-                          <div class="mb-3" id="Friday, Nov 13th">
-                              {% for assignment in data_list %}
-                              <ul class="list-timeline list-timeline-primary">
-                                  {% if assignment.context_ellipsis == '사용자정의 일정' %}
-                                  <a href="{% url 'time_table:edit_schedule' assignment.id %}">
-                                      <li class="list-timeline-item p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column">
-                                          <p class="my-0 text-dark flex-fw text-sm text-uppercase">
-                                              <span class="text-inverse font-weight-bold op-8">
-                                                  {{ assignment.time }}
-                                              </span>
-                                          </p>
-                                          <span class="text-dark text-inverse op-8">{{ assignment.context_ellipsis }}</span>
-                                          <span class="text-inverse op-8">: {{ assignment.name }}</span>
+                                          <span class="text-dark text-inverse op-8">{{ data.name }}</span>
+                                          <span class="text-inverse op-8">: {{ data.context }}</span>
                                       </li>
                                   </a>
-                                  {% else %}
-                                  <li class="list-timeline-item p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column">
-                                      <p class="my-0 text-dark flex-fw text-sm text-uppercase">
-                                          <span class="text-inverse font-weight-bold op-8">
-                                              {{ assignment.time }}
-                                          </span>
-                                      </p>
-                                      <span class="text-dark text-inverse op-8">{{ assignment.context_ellipsis }}</span>
-                                      <span class="text-inverse op-8">: {{ assignment.name }}</span>
-                                  </li>
                                   {% endif %}
-                              </ul>
+                              {% endif %}
                               {% endfor %}
                           </div>
                       </div>

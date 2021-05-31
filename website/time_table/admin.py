@@ -1,16 +1,16 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import Data, TimeTable
+from .models import Data, Activity
 
 
 class DataAdmin(admin.ModelAdmin):
-    search_fields = ['sort', 'context_ellipsis', 'name']
+    search_fields = ['sort', 'name', 'context', 'content']
 
 
-class TimeTableAdmin(admin.ModelAdmin):
-    search_fields = ['prof', 'subject', 'date', 'start_h', 'end_h']
+class ActivityAdmin(admin.ModelAdmin):
+    search_fields = ['name', 'registration_date', 'activity_date', 'department']
 
 
 admin.site.register(Data, DataAdmin)
-admin.site.register(TimeTable, TimeTableAdmin)
+admin.site.register(Activity, ActivityAdmin)
