@@ -121,6 +121,16 @@
                   <div>
                       <form method="post" action="{% url 'time_table:crawling' %}">
                           {% csrf_token %}
+                          <div class="form-group">
+                            <label for="username">학번</label>
+                            <input type="text" class="form-control" name="id" id="id"
+                                   value="{{ form.username.value|default_if_none:'' }}">
+                          </div>
+                          <div class="form-group">
+                              <label for="password">비밀번호</label>
+                              <input type="password" class="form-control" name="password" id="password"
+                                     value="{{ form.password.value|default_if_none:'' }}">
+                          </div>
                           <button type="submit">과제 읽어오기</button>
                       </form>
                   </div>
@@ -152,6 +162,16 @@
                   <div>
                       <form method="post" action="{% url 'time_table:load_timetable' %}">
                           {% csrf_token %}
+                          <div class="form-group">
+                            <label for="username">학번</label>
+                            <input type="text" class="form-control" name="id_cieat" id="id_cieat"
+                                   value="{{ form.username.value|default_if_none:'' }}">
+                          </div>
+                          <div class="form-group">
+                              <label for="password">비밀번호</label>
+                              <input type="password" class="form-control" name="pswd_cieat" id="pswd_cieat"
+                                     value="{{ form.password.value|default_if_none:'' }}">
+                          </div>
                           <button type="submit">시간표 읽어오기</button>
                       </form>
                   </div>
@@ -164,6 +184,16 @@
                   <div>
                       <form method="post" action="{% url 'time_table:load_interest' %}">
                           {% csrf_token %}
+                          <div class="form-group">
+                            <label for="username">학번</label>
+                            <input type="text" class="form-control" name="id_cieat2" id="id_cieat2"
+                                   value="{{ form.username.value|default_if_none:'' }}">
+                          </div>
+                          <div class="form-group">
+                              <label for="password">비밀번호</label>
+                              <input type="password" class="form-control" name="pswd_cieat2" id="pswd_cieat2"
+                                     value="{{ form.password.value|default_if_none:'' }}">
+                          </div>
                           <button type="submit">관심분야 읽어오기</button>
                       </form>
                   </div>

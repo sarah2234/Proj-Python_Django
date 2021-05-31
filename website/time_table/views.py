@@ -12,9 +12,10 @@ from django.shortcuts import render, redirect
 from datetime import datetime, timedelta
 from pytz import timezone, utc
 
-from .models import Data, Activity, Profile
+from .models import Data, Activity
 from django.db.models import Q
 import re
+import os
 
 import pandas as pd  # 엑셀을 다루는 라이브러리 pandas
 from selenium.webdriver.common.keys import Keys
@@ -29,14 +30,12 @@ options.add_argument('--ignore-certificate-errors')
 options.add_argument('--incognito')
 options.add_argument('--headless')
 options.add_argument('--start-fullscreen')
+options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 
 # chrome driver를 불러오고 위의 option을 적용시킴
 # driver = webdriver.Chrome()  # 본인 컴퓨터에서 chromedrive가 있는 경로 입력
 # 입력예시
-driver = webdriver.Chrome(
-    '/home/ubuntu/venvs/mysite/bin/chromedriver',
-    chrome_options=options)
-
+driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=options)
 
 date_list = ['월', '화', '수', '목', '금', '토', '일']
 
@@ -47,132 +46,6 @@ def cieat_interest(request):
     return render(request, 'cieat.html', context)
 
 
-def cieat_submit(request):
-    if request.method == "GET":
-        return redirect('time_table:choose_timetable')
-    elif request.method == "POST":
-        for data in request.POST.getlist('data'):
-            d = Activity.objects.get(id=data)
-            driver.get('https://cieat.chungbuk.ac.kr/clientMain/a/t/main.do')
-            try:
-                element = WebDriverWait(driver, 3).until(
-                    EC.presence_of_element_located((By.XPATH, '/html/body/div[3]/header/div[2]/div/a')))
-                # 로그인
-                # get_schedule을 통해 이미 로그인 된 상태면 pass
-                driver.find_element_by_xpath('/html/body/div[3]/header/div[2]/div/a').send_keys(Keys.ENTER)  # 로그인 버튼 클릭
-                element = WebDriverWait(driver, 3).until(
-                    EC.presence_of_element_located((By.ID, 'loginForm')))
-                driver.find_element_by_name('userId').send_keys(Profile.objects.get(user=request.user).student_ID)  # 입력받은 학번으로 로그인
-                driver.find_element_by_name('userPw').send_keys(Profile.objects.get(user=request.user).CBNU_PW)  # 입력받은 비밀번호로 로그인
-                driver.find_element_by_class_name('btn_login_submit').click()
-                element = WebDriverWait(driver, 20).until(
-                    EC.presence_of_element_located(
-                        (By.XPATH, '/html/body/div[3]/header/div[2]/h1/a/img')))  # logo xpath
-            except TimeoutException:
-                # 이미 로그인 되어있는 상태
-                pass
-            except UnexpectedAlertPresentException:
-                print("현재 서비스가 원활하지 않습니다.")
-                print("잠시 후 다시 이용해 주십시오.")
-                return redirect('time_table:cieat_interest')
-
-            # 비교과 목록
-            driver.get('https://cieat.chungbuk.ac.kr/ncrProgramAppl/a/m/goProgramApplList.do')  # 비교과 신청 주소
-            page_num = 1  # 현재 페이지
-
-            time.sleep(2)
-            afford = driver.find_element_by_xpath('//*[@id="program_chk1"]')  # 신청 가능 체크 박스
-            # <a herf= ~~>에서 herf 속성에 url이 아닌 자바스크립트가 들어간 경우 click()로 주소에 들어갈 수 없음
-            # 이럴 땐 onclick 내부 명령어가 실행되도록 하든가 (send_key('\n') 또는 send_key(Keys.ENTER)) 아니면 자바스크립트 명령어 실행
-            driver.execute_script("arguments[0].click();", afford)
-
-            # 신청 가능한 것만 찾기
-            scroll = driver.find_element_by_tag_name('body').click()
-            driver.find_element_by_tag_name('body').send_keys(Keys.PAGE_DOWN)
-
-            while True:
-                # 페이지의 윗 부분
-                time.sleep(1)
-                activities = driver.find_elements_by_class_name('program_lisbox')  # 비교과 활동들 전부 찾기
-                for index, activity in enumerate(activities):
-                    try:
-                        name = activity.find_element_by_tag_name('dt')  # 활동명
-                        if d.name in name.text.strip():
-                            activity.find_element_by_tag_name('a').send_keys(Keys.ENTER)  # 전공과 관련있는 비교과 활동일 때
-
-                            # 스크롤 높이 가져옴
-                            last_height = driver.execute_script("return document.body.scrollHeight")
-                            while True:
-                                # 끝까지 스크롤 다운
-                                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                                # 스크롤 다운 후 스크롤 높이 다시 가져옴
-                                new_height = driver.execute_script("return document.body.scrollHeight")
-                                if new_height == last_height:
-                                    break
-                                last_height = new_height
-
-                            driver.find_element_by_xpath('//*[@id="container_skip"]/div[2]/button[1]').send_keys(
-                                Keys.ENTER)  # 신청접수 버튼
-                            WebDriverWait(driver, 3).until(EC.alert_is_present(),
-                                                           '신청하시겠습니까?')
-                            alert = driver.switch_to_alert()
-                            alert.accept()
-                            print("신청 접수되었습니다.\n")
-                            d.delete()
-                            return redirect('time_table:cieat_interest')
-
-                    except NoSuchElementException:
-                        pass
-                    except UnexpectedAlertPresentException:
-                        pass
-
-                # 페이지의 아랫 부분
-                driver.find_element_by_tag_name('body').send_keys(Keys.PAGE_DOWN)
-                time.sleep(1)
-                activities = driver.find_elements_by_class_name('program_lisbox')  # 비교과 활동들 전부 찾기
-                for index, activity in enumerate(activities):
-                    try:
-                        name = activity.find_element_by_tag_name('dt')  # 활동명
-                        if d.name in name.text.strip():
-                            activity.find_element_by_tag_name('a').send_keys(Keys.ENTER)  # 전공과 관련있는 비교과 활동일 때
-
-                            # 스크롤 높이 가져옴
-                            last_height = driver.execute_script("return document.body.scrollHeight")
-                            while True:
-                                # 끝까지 스크롤 다운
-                                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                                # 스크롤 다운 후 스크롤 높이 다시 가져옴
-                                new_height = driver.execute_script("return document.body.scrollHeight")
-                                if new_height == last_height:
-                                    break
-                                last_height = new_height
-
-                            driver.find_element_by_xpath('//*[@id="container_skip"]/div[2]/button[1]').send_keys(
-                                Keys.ENTER)  # 신청접수 버튼
-                            WebDriverWait(driver, 3).until(EC.alert_is_present(),
-                                                           '신청하시겠습니까?')
-                            alert = driver.switch_to_alert()
-                            alert.accept()
-                            print("신청 접수되었습니다.\n")
-                            d.delete()
-                            return redirect('time_table:cieat_interest')
-
-                    except NoSuchElementException:
-                        pass
-
-                page_num += 1
-                try:
-                    driver.find_element_by_xpath(
-                        '//*[@id="ncrProgramAjaxDiv"]/article/div[2]/div/a[' + str(page_num) + ']').send_keys(
-                        Keys.ENTER)
-                    driver.find_element_by_tag_name('body').send_keys(Keys.PAGE_UP)
-                except NoSuchElementException:
-                    print("해당 비교과 활동이 존재하지 않습니다.\n")
-                    break
-            d.delete()
-    return redirect('time_table:cieat_interest')
-
-
 def load_interest(request):
     if request.method == "GET":
         return redirect('time_table:setting')
@@ -181,8 +54,8 @@ def load_interest(request):
         try:
             driver.find_element_by_class_name('btn_login').click()  # CIEAT 로그인 버튼
             element = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, 'loginForm')))
-            driver.find_element_by_name('userId').send_keys(Profile.objects.get(user=request.user).student_ID)  # 입력받은 학번으로 로그인
-            driver.find_element_by_name('userPw').send_keys(Profile.objects.get(user=request.user).CBNU_PW)  # 입력받은 비밀번호로 로그인
+            driver.find_element_by_name('userId').send_keys(request.POST.get('id_cieat2'))  # 입력받은 학번으로 로그인
+            driver.find_element_by_name('userPw').send_keys(request.POST.get('pswd_cieat2'))  # 입력받은 비밀번호로 로그인
             driver.find_element_by_class_name('btn_login_submit').click()
         except UnexpectedAlertPresentException:  # 유저 정보 오기입
             print("학번과 비밀번호를 확인해주십시오.")
@@ -216,11 +89,8 @@ def load_interest(request):
         major_sub = major2[0].rstrip()  # 복수전공이나 부전공을 안 해서 씨앗에서 어떻게 표시되는지 잘 모르겠음...
         major_multiple = major2[1].rstrip()
 
-        user_major = [major, major_sub, major_multiple]
-
-        # 입력한 키워드 있으면 추가
-        if request.POST.get('keyword'):
-            user_major.append(request.POST.get('keyword'))
+        # user_departments = [major, major_sub, major_multiple]
+        user_major = ["SW중심대학사업단", major_sub, major_multiple]
 
 # ------------------------- CIEAT에서 비교과 활동 읽어오기 ---------------------------
 
@@ -243,39 +113,21 @@ def load_interest(request):
             activities = driver.find_elements_by_class_name('program_lisbox')  # 비교과 활동들 전부 찾기
             for index, activity in enumerate(activities):
                 try:
-                    # 운영부서 검색
                     department = activity.find_elements_by_tag_name('dd')[2].find_elements_by_tag_name('span')[
                         1].text.strip()  # 운영부서, (부서이름)
+                    print(department)
                     for user_department in user_major:
-                        if user_department != '-':
-                            if user_department in department:
-                                name = activity.find_element_by_tag_name('dt').find_element_by_tag_name('a').text.strip()  # 활동명
-                                activity_detail = activity.find_elements_by_tag_name('dd')
-                                registration_date = activity_detail[0].find_elements_by_tag_name('span')[1].text.strip()  # 모집 기간
-                                activity_date = activity_detail[1].find_elements_by_tag_name('span')[1].text.strip()  # 활동 기간
+                        if department in user_department:
+                            name = activity.find_element_by_tag_name('dt').find_element_by_tag_name('a').text.strip()  # 활동명
+                            activity_detail = activity.find_elements_by_tag_name('dd')
+                            registration_date = activity_detail[0].find_elements_by_tag_name('span')[1].text.strip()  # 모집 기간
+                            activity_date = activity_detail[1].find_elements_by_tag_name('span')[1].text.strip()  # 활동 기간
 
-                                if Activity.objects.filter(name=name, registration_date=registration_date,
-                                                           activity_date=activity_date, department=department).count() == 0:
-                                    Activity(name=name, registration_date=registration_date,
-                                             activity_date=activity_date, department=department).save()
+                            if Activity.objects.filter(name=name, registration_date=registration_date,
+                                                       activity_date=activity_date, department=department).count() == 0:
+                                Activity(name=name, registration_date=registration_date,
+                                         activity_date=activity_date, department=department).save()
 
-                    # 활동명 검색
-                    name = activity.find_element_by_tag_name('dt').text.strip()  # 활동명
-                    for user_department in user_major:
-                        if user_department != '-':
-                            if user_department in name:
-                                name = activity.find_element_by_tag_name('dt').find_element_by_tag_name(
-                                    'a').text.strip()  # 활동명
-                                activity_detail = activity.find_elements_by_tag_name('dd')
-                                registration_date = activity_detail[0].find_elements_by_tag_name('span')[
-                                    1].text.strip()  # 모집 기간
-                                activity_date = activity_detail[1].find_elements_by_tag_name('span')[
-                                    1].text.strip()  # 활동 기간
-
-                                if Activity.objects.filter(name=name, registration_date=registration_date,
-                                                           activity_date=activity_date, department=department).count() == 0:
-                                    Activity(name=name, registration_date=registration_date,
-                                             activity_date=activity_date, department=department).save()
                 except NoSuchElementException or TimeoutException:
                     print("현재 신청할 수 있는 비교과 활동이 존재하지 않습니다.\n")
                     pass
@@ -295,6 +147,7 @@ def choose_timetable(request):
     if request.method == "GET":
         return redirect('time_table:choose_timetable')
     elif request.method == "POST":
+        # a = Data.objects.filter(id=request.POST.get('delete_data'))
         for data in request.POST.getlist('delete_data'):
             Data.objects.filter(id=data).delete()
     return redirect('time_table:schedule')
@@ -316,8 +169,8 @@ def load_timetable(request):
         try:
             driver.find_element_by_class_name('btn_login').click()  # CIEAT 로그인 버튼
             element = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, 'loginForm')))
-            driver.find_element_by_name('userId').send_keys(Profile.objects.get(user=request.user).student_ID)  # 입력받은 학번으로 로그인
-            driver.find_element_by_name('userPw').send_keys(Profile.objects.get(user=request.user).CBNU_PW)  # 입력받은 비밀번호로 로그인
+            driver.find_element_by_name('userId').send_keys(request.POST.get('id_cieat'))  # 입력받은 학번으로 로그인
+            driver.find_element_by_name('userPw').send_keys(request.POST.get('pswd_cieat'))  # 입력받은 비밀번호로 로그인
             driver.find_element_by_class_name('btn_login_submit').click()
         except UnexpectedAlertPresentException:  # 유저 정보 오기입
             print("학번과 비밀번호를 확인해주십시오.")
@@ -604,8 +457,8 @@ def crawling(request):
             element = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.NAME, "uid")))
             # 로그인 되어있지 않는 경우 로그인
-            driver.find_element_by_name('uid').send_keys(Profile.objects.get(user=request.user).student_ID)  # 학번
-            driver.find_element_by_name('pswd').send_keys(Profile.objects.get(user=request.user).CBNU_PW)  # Blackboard 비밀번호
+            driver.find_element_by_name('uid').send_keys(request.POST.get('id'))  # 학번
+            driver.find_element_by_name('pswd').send_keys(request.POST.get('password'))  # Blackboard 비밀번호
             driver.find_element_by_xpath('//*[@id="entry-login"]').click()
         except TimeoutException:
             print('로그인상태')

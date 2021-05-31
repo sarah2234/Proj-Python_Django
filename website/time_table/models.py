@@ -1,29 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-
-class Profile(models.Model):
-
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    student_ID = models.CharField(max_length=30, blank=True)
-    CBNU_PW = models.CharField(max_length=30, blank=True)
-
-    def __str__(self):
-        return '%s %s' % (self.user.first_name, self.user.last_name)
-
-
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.create(user=instance)
-
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
-
 
 # 시간표, 과제, 개인일정 같은 DB로 통합
 class Data(models.Model):
@@ -51,6 +27,15 @@ class Activity(models.Model):
 
     def __str__(self):
         return self.name
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)  # deletes user's info automatically when the user wants
+
+    ID = models.CharField(max_length=30)
+    password = models.CharField(max_length=30)
+
+    def __str__(self):
+        return self.user.username
 
 # # 블랙보드 Stream에서 읽어온 값들 저장할 모델 - 과제에 초점이 맞춰져 있음
 # class Data(models.Model):

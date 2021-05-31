@@ -112,43 +112,34 @@
       </nav>
       <!-- End Navbar -->
       <div class="content">
-          <div class="col-md-12">
-              <h3 class="mt-0 mb-3 text-dark op-8 font-weight-bold">
-                  씨앗 관심분야
-              </h3>
-              <form method="post" action="{% url 'time_table:load_interest' %}">
-                  {% csrf_token %}
-                  <p>키워드 검색 (아무것도 입력하지 않을시 학과명으로만 검색)</p>
-                  <p><input type="text" name="keyword" id="keyword"></p>
-                  <button type="submit">관심분야 읽어오기</button>
-              </form>
-          </div>
-          <form method="post" action="{% url 'time_table:cieat_submit' %}">
-              {% csrf_token %}
-              <div style="overflow:auto; height: 65vh;">
-                  <table class="table table-striped">
-                      <thead>
-                      <tr>
-                          <th>비교과 활동</th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                      <tr>
-                          <td>활동명</td><td>모집기간</td><td>활동기간</td><td>운영부서</td>
-                      </tr>
-                      {% for activity in activity_list %}
-                      <tr>
-                          <td><label><input type="checkbox" name="data" value={{activity.id}}>{{ activity.name }}</label></td>
-                          <td>{{ activity.registration_date }}</td>
-                          <td>{{ activity.activity_date }}</td>
-                          <td>{{ activity.department }}</td>
-                      </tr>
-                      {% endfor %}
-                      </tbody>
-                  </table>
-              </div>
-              <button type="submit">신청하기</button>
-          </form>
+        <div class="col-md-12">
+          <h3 class="mt-0 mb-3 text-dark op-8 font-weight-bold">
+            씨앗 관심분야
+          </h3>
+        </div>
+        {% csrf_token %}
+        <div style="overflow:auto; height: 80vh;">
+          <table class="table table-striped">
+              <thead>
+              <tr>
+                  <th>비교과 활동</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr>
+                  <td>활동명</td><td>모집기간</td><td>활동기간</td><td>운영부서</td>
+              </tr>
+              {% for activity in activity_list %}
+              <tr>
+                  <td>{{ activity.name }}</td>
+                  <td>{{ activity.registration_date }}</td>
+                  <td>{{ activity.activity_date }}</td>
+                  <td>{{ activity.department }}</td>
+              </tr>
+              {% endfor %}
+              </tbody>
+          </table>
+        </div>
       </div>
         <footer class="footer" style="position: absolute; bottom: 0; width: -webkit-fill-available;">
             <div class="container-fluid">
