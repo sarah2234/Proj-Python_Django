@@ -6,7 +6,7 @@ from django.dispatch import receiver
 
 class Profile(models.Model):
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     student_ID = models.CharField(max_length=30, blank=True)
     CBNU_PW = models.CharField(max_length=30, blank=True)
 

@@ -13,8 +13,6 @@ class SignUpForm(UserCreationForm):
     first_name = forms.CharField(max_length=30, required=False, help_text='Optional', widget=forms.TextInput(attrs={'placeholder': 'Your first name'}))
     last_name = forms.CharField(max_length=30, required=False, help_text='Optional', widget=forms.TextInput(attrs={'placeholder': 'Your last name'}))
     email = forms.EmailField(max_length=254, required=False, help_text='Enter a valid email address', widget=forms.EmailInput(attrs={'placeholder': 'Your email'}))
-    password1 = forms.CharField(max_length=30, required=False, help_text='Optional', widget=forms.TextInput(attrs={'placeholder': 'Password'}))
-    password2 = forms.CharField(max_length=30, required=False, help_text='Optional', widget=forms.TextInput(attrs={'placeholder': 'Repeat your password'}))
 
     class Meta:
         model = User
@@ -26,8 +24,6 @@ class SignUpForm(UserCreationForm):
             'first_name', 
             'last_name', 
             'email',
-            'password1',
-            'password2', 
         ]
 
 class ProfileForm(forms.ModelForm):

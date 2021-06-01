@@ -1,28 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-
-class Profile(models.Model):
-
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    student_ID = models.CharField(max_length=30, blank=True)
-    CBNU_PW = models.CharField(max_length=30, blank=True)
-
-    def __str__(self):
-        return '%s %s' % (self.user.first_name, self.user.last_name)
-
-
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.create(user=instance)
-
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
 
 
 # 시간표, 과제, 개인일정 같은 DB로 통합
@@ -53,29 +30,4 @@ class Activity(models.Model):
 
     def __str__(self):
         return self.name
-
-# # 블랙보드 Stream에서 읽어온 값들 저장할 모델 - 과제에 초점이 맞춰져 있음
-# class Data(models.Model):
-#     sort = models.CharField(max_length=20)  # 종류(공지사항, 과제, ..)
-#     context_ellipsis = models.TextField()  # 과목
-#     name = models.TextField()  # 제목
-#     content = models.TextField()  # 내용
-#     time = models.DateTimeField(null=True)
-#
-#     def __str__(self):
-#         return self.context_ellipsis + " " + self.sort
-#
-#
-# # 수업 시간표 저장할 모델
-# class TimeTable(models.Model):
-#     prof = models.TextField()  # 교수님
-#     subject = models.TextField()  # 과목명
-#     date = models.CharField(max_length=10, default='요일')
-#     start_h = models.IntegerField()
-#     end_h = models.IntegerField()
-#
-#     def __str__(self):
-#         return self.subject + " - " + self.prof
-#
-#
 

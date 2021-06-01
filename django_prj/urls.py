@@ -20,7 +20,7 @@ Including another URLconf
 from django.contrib import admin
 from django.shortcuts import redirect
 from django.urls import path, include
-from apps.common.views import DashboardView, user_login, update_profile
+from apps.common.views import user_login, update_profile
 from django.contrib.auth import views as auth_views
 
 from django.views.generic import TemplateView
@@ -43,10 +43,8 @@ from django.views.generic import TemplateView
 urlpatterns = [
 
     path('admin/', admin.site.urls),
-    path('time_table/', include('time_table.urls')),
+    path('time_table/', include('time_table.urls'), name='time_table'),
     path('', TemplateView.as_view(template_name='template.html')),
-    
-    path('dashboard/', DashboardView.as_view(), name='dashboard'),
     
     path('register/', update_profile, name='register'),
     

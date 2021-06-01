@@ -26,7 +26,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY=os.environ.get('SECRET_KEY', 'django-insecure-_a@*t7wg*9nho-9%a!%xvin3sh1k@=!=(r6to-b8h)wgclu70x')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(os.environ.get('DJANGO_DEBUG', False))
+DEBUG = True  # 이렇게 바꾸기 전에는 500 오류남
+# DEBUG = bool(os.environ.get('DJANGO_DEBUG', False))
 
 if os.environ.get('DJANGO_ALLOWED_HOSTS'):
     ALLOWED_HOSTS=os.environ.get('DJANGO_ALLOWED_HOSTS').split(' ')
@@ -37,6 +38,8 @@ else:
 # Application definition
 
 INSTALLED_APPS = [
+    'apps.common.apps.CommonConfig',
+    'apps.userprofile.apps.UserprofileConfig',
     'time_table.apps.TimeTableConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -149,3 +152,5 @@ STATICFILES_DIRS = [
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 django_heroku.settings(locals())
+
+LOGIN_REDIRECT_URL = 'time_table:'

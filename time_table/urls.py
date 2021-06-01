@@ -1,5 +1,4 @@
 from django.urls import path
-from django.contrib import admin
 
 from . import views
 
@@ -27,6 +26,4 @@ urlpatterns = [
     path('setting', views.setting, name='setting'),
     path('setting/timetable/load', views.load_timetable, name='load_timetable'),
     path('setting/timetable/choose', views.choose_timetable, name='choose_timetable'),
-
-    path('admin/', admin.site.urls),
 ]

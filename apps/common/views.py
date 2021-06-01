@@ -7,16 +7,19 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from .forms import SignUpForm, ProfileForm
 from django.urls import reverse_lazy
   
-from .models import *
-from django.contrib import messages
+# from .models import *
+# from django.contrib import messages
 
 
-class DashboardView(TemplateView):
-    template_name = 'common/dashboard.html'
-    login_url = reverse_lazy('login')
+# class DashboardView(TemplateView):
+#     template_name = 'common/dashboard.html'
+#     login_url = reverse_lazy('login')
 
 
 from django.contrib.auth import authenticate, login
+
+app_name = 'time_table'
+
 
 def update_profile(request):
 
@@ -24,8 +27,10 @@ def update_profile(request):
         form = SignUpForm(request.POST, instance=request.user)
         profile_form = ProfileForm(request.POST, instance=request.user.profile)
 
+        print(form)
+        print(profile_form)
         if form.is_valid() and profile_form.is_valid():
-            
+            print('생성')
             user = form.save()
 
             profile = profile_form.save(commit=False)
@@ -59,7 +64,6 @@ def update_profile(request):
 #     return render(request, 'common/register.html', context)    
 
 
-
 def user_login(request):
 
     if request.method == 'POST':
@@ -67,11 +71,10 @@ def user_login(request):
         password = request.POST['password']
 
         user = authenticate(request, username=username, password=password)
-        
 
         if user is not None:
             login(request, user)
-            return redirect('dashboard')
+            return redirect('time_table:schedule')
         else:
             return render(request, 'common/login.html', {'error' : 'username or password is incorrect.'})
     else:
