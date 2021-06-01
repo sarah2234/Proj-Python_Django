@@ -111,6 +111,9 @@ Heroku 서버 구축 방법
   * import os 한 후 os.environ.get("GOOGLE_CHROME_BIN"), os.environ.get("CHROMEDRIVER_PATH")로 크롬과 크롬 드라이버 경로 지정
 * settings.py
   * ALLOWED_HOSTS, STATIC_ROOT, 마지막 줄에 django_heroku.settings(locals()) 추가 (https://www.youtube.com/watch?v=6DI_7Zja8Zc&t=2723s)  
+* wsgi.py
+  * os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_prj.settings')   
+    application = get_wsgi_application()
  
  Heroku Commands (Heroku CLI 설치 필수)
  --------------------------------------------------
