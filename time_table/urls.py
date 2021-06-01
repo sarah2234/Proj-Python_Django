@@ -1,4 +1,5 @@
 from django.urls import path
+from django.contrib import admin
 
 from . import views
 
@@ -24,5 +25,4 @@ urlpatterns = [
     path('cieat_interest/load', views.load_interest, name='load_interest'),
     path('cieat_interest/submit', views.cieat_submit, name='cieat_submit'),
     path('admin/', admin.site.urls),
-    path('image_upload', views.index, name='index'),
 ]
