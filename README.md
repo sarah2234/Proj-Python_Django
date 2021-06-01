@@ -126,6 +126,7 @@ Heroku 서버 구축 방법
  * git heroku push master로 heroku에 바로 푸쉬가 가능하지만 빈번한 에러로 추천하지 않음
    * 대신 GitHub와  연동하여 자동/수동으로 deploy할 수 있는 기능 > heroku의 deploy 탭에서 설정 가능
  * 에러 확인: heroku logs --tail (ctrl+c로 종료)   
+ * buildpack 취소: heroku config:unset 해당 
  
  그 외 Heroku 설정 사항
  --------------------------------------------------
