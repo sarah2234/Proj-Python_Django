@@ -229,7 +229,7 @@ def go_to_CIEAT_activity_page(id, password, name_of_interesting_activity):  # �
         activities = driver.find_elements_by_class_name('program_lisbox')  # 비교과 활동들 전부 찾기
         for index, activity in enumerate(activities):
             try:
-                name=activity.find_element_by_tag_name('dt')  # 활동명
+                name = activity.find_element_by_tag_name('dt')  # 활동명
                 if name_of_interesting_activity in name.text.strip():
                     activity.find_element_by_tag_name('a').send_keys(Keys.ENTER)  # 전공과 관련있는 비교과 활동일 때
 

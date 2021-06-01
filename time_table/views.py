@@ -6,13 +6,13 @@ from bs4 import BeautifulSoup as bs
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, UnexpectedAlertPresentException, NoSuchElementException
+from selenium.common.exceptions import TimeoutException, UnexpectedAlertPresentException, NoSuchElementException, InvalidArgumentException
 
 from django.shortcuts import render, redirect
 from datetime import datetime, timedelta
 from pytz import timezone, utc
 
-from .models import Data, Activity
+from .models import Data, Activity, Profile, Icon
 from django.db.models import Q
 import re
 import os
@@ -34,8 +34,8 @@ options.add_argument('--no-sandbox')
 options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 
 # chrome driver를 불러오고 위의 option을 적용시킴
-# driver = webdriver.Chrome()  # 본인 컴퓨터에서 chromedrive가 있는 경로 입력
-# 입력예시
+# CHROMEDRIVER_PATH 환경 변수에 개발하면서 사용할 본인 컴퓨터 안의 chromedrive 경로 저장
+# os.environ["CHROMEDRIVER_PATH"] = '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe'
 driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=options)
 
 date_list = ['월', '화', '수', '목', '금', '토', '일']
@@ -47,6 +47,132 @@ def cieat_interest(request):
     return render(request, 'cieat.html', context)
 
 
+def cieat_submit(request):
+    if request.method == "GET":
+        return redirect('time_table:choose_timetable')
+    elif request.method == "POST":
+        for data in request.POST.getlist('data'):
+            d = Activity.objects.get(id=data)
+            driver.get('https://cieat.chungbuk.ac.kr/clientMain/a/t/main.do')
+            try:
+                element = WebDriverWait(driver, 3).until(
+                    EC.presence_of_element_located((By.XPATH, '/html/body/div[3]/header/div[2]/div/a')))
+                # 로그인
+                # get_schedule을 통해 이미 로그인 된 상태면 pass
+                driver.find_element_by_xpath('/html/body/div[3]/header/div[2]/div/a').send_keys(Keys.ENTER)  # 로그인 버튼 클릭
+                element = WebDriverWait(driver, 3).until(
+                    EC.presence_of_element_located((By.ID, 'loginForm')))
+                driver.find_element_by_name('userId').send_keys(
+                    Profile.objects.get(user=request.user).student_ID)  # 입력받은 학번으로 로그인
+                driver.find_element_by_name('userPw').send_keys(
+                    Profile.objects.get(user=request.user).CBNU_PW)  # 입력받은 비밀번호로 로그인
+                driver.find_element_by_class_name('btn_login_submit').click()
+                element = WebDriverWait(driver, 20).until(
+                    EC.presence_of_element_located(
+                        (By.XPATH, '/html/body/div[3]/header/div[2]/h1/a/img')))  # logo xpath
+            except TimeoutException:
+                # 이미 로그인 되어있는 상태
+                pass
+            except UnexpectedAlertPresentException:
+                print("현재 서비스가 원활하지 않습니다.")
+                print("잠시 후 다시 이용해 주십시오.")
+                return redirect('time_table:cieat_interest')
+
+            # 비교과 목록
+            driver.get('https://cieat.chungbuk.ac.kr/ncrProgramAppl/a/m/goProgramApplList.do')  # 비교과 신청 주소
+            page_num = 1  # 현재 페이지
+
+            time.sleep(2)
+            afford = driver.find_element_by_xpath('//*[@id="program_chk1"]')  # 신청 가능 체크 박스
+            # <a herf= ~~>에서 herf 속성에 url이 아닌 자바스크립트가 들어간 경우 click()로 주소에 들어갈 수 없음
+            # 이럴 땐 onclick 내부 명령어가 실행되도록 하든가 (send_key('\n') 또는 send_key(Keys.ENTER)) 아니면 자바스크립트 명령어 실행
+            driver.execute_script("arguments[0].click();", afford)
+
+            # 신청 가능한 것만 찾기
+            scroll = driver.find_element_by_tag_name('body').click()
+            driver.find_element_by_tag_name('body').send_keys(Keys.PAGE_DOWN)
+
+            while True:
+                # 페이지의 윗 부분
+                time.sleep(1)
+                activities = driver.find_elements_by_class_name('program_lisbox')  # 비교과 활동들 전부 찾기
+                for index, activity in enumerate(activities):
+                    try:
+                        name = activity.find_element_by_tag_name('dt')  # 활동명
+                        if d.name in name.text.strip():
+                            activity.find_element_by_tag_name('a').send_keys(Keys.ENTER)  # 전공과 관련있는 비교과 활동일 때
+
+                            # 스크롤 높이 가져옴
+                            last_height = driver.execute_script("return document.body.scrollHeight")
+                            while True:
+                                # 끝까지 스크롤 다운
+                                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                                # 스크롤 다운 후 스크롤 높이 다시 가져옴
+                                new_height = driver.execute_script("return document.body.scrollHeight")
+                                if new_height == last_height:
+                                    break
+                                last_height = new_height
+
+                            driver.find_element_by_xpath('//*[@id="container_skip"]/div[2]/button[1]').send_keys(
+                                Keys.ENTER)  # 신청접수 버튼
+                            WebDriverWait(driver, 3).until(EC.alert_is_present(),
+                                                           '신청하시겠습니까?')
+                            alert = driver.switch_to_alert()
+                            alert.accept()
+                            print("신청 접수되었습니다.\n")
+                            d.delete()
+                            return redirect('time_table:cieat_interest')
+
+                    except NoSuchElementException:
+                        pass
+
+                # 페이지의 아랫 부분
+                driver.find_element_by_tag_name('body').send_keys(Keys.PAGE_DOWN)
+                time.sleep(1)
+                activities = driver.find_elements_by_class_name('program_lisbox')  # 비교과 활동들 전부 찾기
+                for index, activity in enumerate(activities):
+                    try:
+                        name = activity.find_element_by_tag_name('dt')  # 활동명
+                        if d.name in name.text.strip():
+                            activity.find_element_by_tag_name('a').send_keys(Keys.ENTER)  # 전공과 관련있는 비교과 활동일 때
+
+                            # 스크롤 높이 가져옴
+                            last_height = driver.execute_script("return document.body.scrollHeight")
+                            while True:
+                                # 끝까지 스크롤 다운
+                                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                                # 스크롤 다운 후 스크롤 높이 다시 가져옴
+                                new_height = driver.execute_script("return document.body.scrollHeight")
+                                if new_height == last_height:
+                                    break
+                                last_height = new_height
+
+                            driver.find_element_by_xpath('//*[@id="container_skip"]/div[2]/button[1]').send_keys(
+                                Keys.ENTER)  # 신청접수 버튼
+                            WebDriverWait(driver, 3).until(EC.alert_is_present(),
+                                                           '신청하시겠습니까?')
+                            alert = driver.switch_to_alert()
+                            alert.accept()
+                            print("신청 접수되었습니다.\n")
+                            d.delete()
+                            return redirect('time_table:cieat_interest')
+
+                    except NoSuchElementException:
+                        pass
+
+                page_num += 1
+                try:
+                    driver.find_element_by_xpath(
+                        '//*[@id="ncrProgramAjaxDiv"]/article/div[2]/div/a[' + str(page_num) + ']').send_keys(
+                        Keys.ENTER)
+                    driver.find_element_by_tag_name('body').send_keys(Keys.PAGE_UP)
+                except NoSuchElementException:
+                    print("해당 비교과 활동이 존재하지 않습니다.\n")
+                    break
+            d.delete()
+    return redirect('time_table:cieat_interest')
+
+
 def load_interest(request):
     if request.method == "GET":
         return redirect('time_table:setting')
@@ -55,8 +181,10 @@ def load_interest(request):
         try:
             driver.find_element_by_class_name('btn_login').click()  # CIEAT 로그인 버튼
             element = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, 'loginForm')))
-            driver.find_element_by_name('userId').send_keys(request.POST.get('id_cieat2'))  # 입력받은 학번으로 로그인
-            driver.find_element_by_name('userPw').send_keys(request.POST.get('pswd_cieat2'))  # 입력받은 비밀번호로 로그인
+            driver.find_element_by_name('userId').send_keys(
+                Profile.objects.get(user=request.user).student_ID)  # 입력받은 학번으로 로그인
+            driver.find_element_by_name('userPw').send_keys(
+                Profile.objects.get(user=request.user).CBNU_PW)  # 입력받은 비밀번호로 로그인
             driver.find_element_by_class_name('btn_login_submit').click()
         except UnexpectedAlertPresentException:  # 유저 정보 오기입
             print("학번과 비밀번호를 확인해주십시오.")
@@ -72,12 +200,12 @@ def load_interest(request):
         try:
             element = WebDriverWait(driver, 20).until(
                 EC.presence_of_element_located((By.XPATH, '//*[@id="mileageRcrHistList"]/div')))  # 마이페이지 내 교과 이수 현황
-        except UnexpectedAlertPresentException: # 아주가끔 서버 다운 있음
+        except UnexpectedAlertPresentException:  # 아주가끔 서버 다운 있음
             print("현재 서비스가 원활하지 않습니다.")
             print("잠시 후 다시 이용해 주십시오.")
             return redirect('time_table:setting')
 
-# ------------------------- CIEAT의 마이페이지에서 전공 가져오기 ---------------------------
+        # ------------------------- CIEAT의 마이페이지에서 전공 가져오기 ---------------------------
 
         major = driver.find_element_by_xpath(
             '//*[@id="container_skip"]/div/section[1]/div/table/tbody/tr[1]/td[1]').text.strip()  # 마이페이지의 학과/학부 텍스트
@@ -90,10 +218,13 @@ def load_interest(request):
         major_sub = major2[0].rstrip()  # 복수전공이나 부전공을 안 해서 씨앗에서 어떻게 표시되는지 잘 모르겠음...
         major_multiple = major2[1].rstrip()
 
-        # user_departments = [major, major_sub, major_multiple]
-        user_major = ["SW중심대학사업단", major_sub, major_multiple]
+        user_major = [major, major_sub, major_multiple]
 
-# ------------------------- CIEAT에서 비교과 활동 읽어오기 ---------------------------
+        # 입력한 키워드 있으면 추가
+        if request.POST.get('keyword'):
+            user_major.append(request.POST.get('keyword'))
+
+        # ------------------------- CIEAT에서 비교과 활동 읽어오기 ---------------------------
 
         driver.get('https://cieat.chungbuk.ac.kr/ncrProgramAppl/a/m/goProgramApplList.do')  # 비교과 신청 주소
         page_num = 1  # 현재 페이지
@@ -114,20 +245,44 @@ def load_interest(request):
             activities = driver.find_elements_by_class_name('program_lisbox')  # 비교과 활동들 전부 찾기
             for index, activity in enumerate(activities):
                 try:
+                    # 운영부서 검색
                     department = activity.find_elements_by_tag_name('dd')[2].find_elements_by_tag_name('span')[
                         1].text.strip()  # 운영부서, (부서이름)
-                    print(department)
                     for user_department in user_major:
-                        if department in user_department:
-                            name = activity.find_element_by_tag_name('dt').find_element_by_tag_name('a').text.strip()  # 활동명
-                            activity_detail = activity.find_elements_by_tag_name('dd')
-                            registration_date = activity_detail[0].find_elements_by_tag_name('span')[1].text.strip()  # 모집 기간
-                            activity_date = activity_detail[1].find_elements_by_tag_name('span')[1].text.strip()  # 활동 기간
+                        if user_department != '-':
+                            if user_department in department:
+                                name = activity.find_element_by_tag_name('dt').find_element_by_tag_name(
+                                    'a').text.strip()  # 활동명
+                                activity_detail = activity.find_elements_by_tag_name('dd')
+                                registration_date = activity_detail[0].find_elements_by_tag_name('span')[
+                                    1].text.strip()  # 모집 기간
+                                activity_date = activity_detail[1].find_elements_by_tag_name('span')[
+                                    1].text.strip()  # 활동 기간
 
-                            if Activity.objects.filter(name=name, registration_date=registration_date,
-                                                       activity_date=activity_date, department=department).count() == 0:
-                                Activity(name=name, registration_date=registration_date,
-                                         activity_date=activity_date, department=department).save()
+                                if Activity.objects.filter(name=name, registration_date=registration_date,
+                                                           activity_date=activity_date,
+                                                           department=department).count() == 0:
+                                    Activity(name=name, registration_date=registration_date,
+                                             activity_date=activity_date, department=department).save()
+
+                    # 활동명 검색
+                    name = activity.find_element_by_tag_name('dt').text.strip()  # 활동명
+                    for user_department in user_major:
+                        if user_department != '-':
+                            if user_department in name:
+                                name = activity.find_element_by_tag_name('dt').find_element_by_tag_name(
+                                    'a').text.strip()  # 활동명
+                                activity_detail = activity.find_elements_by_tag_name('dd')
+                                registration_date = activity_detail[0].find_elements_by_tag_name('span')[
+                                    1].text.strip()  # 모집 기간
+                                activity_date = activity_detail[1].find_elements_by_tag_name('span')[
+                                    1].text.strip()  # 활동 기간
+
+                                if Activity.objects.filter(name=name, registration_date=registration_date,
+                                                           activity_date=activity_date,
+                                                           department=department).count() == 0:
+                                    Activity(name=name, registration_date=registration_date,
+                                             activity_date=activity_date, department=department).save()
 
                 except NoSuchElementException or TimeoutException:
                     print("현재 신청할 수 있는 비교과 활동이 존재하지 않습니다.\n")
@@ -148,7 +303,6 @@ def choose_timetable(request):
     if request.method == "GET":
         return redirect('time_table:choose_timetable')
     elif request.method == "POST":
-        # a = Data.objects.filter(id=request.POST.get('delete_data'))
         for data in request.POST.getlist('delete_data'):
             Data.objects.filter(id=data).delete()
     return redirect('time_table:schedule')
@@ -170,8 +324,10 @@ def load_timetable(request):
         try:
             driver.find_element_by_class_name('btn_login').click()  # CIEAT 로그인 버튼
             element = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, 'loginForm')))
-            driver.find_element_by_name('userId').send_keys(request.POST.get('id_cieat'))  # 입력받은 학번으로 로그인
-            driver.find_element_by_name('userPw').send_keys(request.POST.get('pswd_cieat'))  # 입력받은 비밀번호로 로그인
+            driver.find_element_by_name('userId').send_keys(
+                Profile.objects.get(user=request.user).student_ID)  # 입력받은 학번으로 로그인
+            driver.find_element_by_name('userPw').send_keys(
+                Profile.objects.get(user=request.user).CBNU_PW)  # 입력받은 비밀번호로 로그인
             driver.find_element_by_class_name('btn_login_submit').click()
         except UnexpectedAlertPresentException:  # 유저 정보 오기입
             print("학번과 비밀번호를 확인해주십시오.")
@@ -187,12 +343,12 @@ def load_timetable(request):
         try:
             element = WebDriverWait(driver, 20).until(
                 EC.presence_of_element_located((By.XPATH, '//*[@id="mileageRcrHistList"]/div')))  # 마이페이지 내 교과 이수 현황
-        except UnexpectedAlertPresentException: # 아주가끔 서버 다운 있음
+        except UnexpectedAlertPresentException:  # 아주가끔 서버 다운 있음
             print("현재 서비스가 원활하지 않습니다.")
             print("잠시 후 다시 이용해 주십시오.")
             return redirect('time_table:setting')
 
-# ------------------------- CIEAT의 마이페이지에서 과목명 가져오기 ---------------------------
+        # ------------------------- CIEAT의 마이페이지에서 과목명 가져오기 ---------------------------
 
         tbody = driver.find_element_by_xpath('//*[@id="mileageRcrHistList"]/div').find_element_by_tag_name(
             'tbody')  # 교과 이수 현황 테이블
@@ -205,7 +361,7 @@ def load_timetable(request):
         except IndexError:
             return redirect('time_table:setting')  # 5.28 3:44시경 CIEAT에서 교과 이수 현황이 출력되지 않는 문제(CIEAT의 문제라 달리 해결할 방도가 없음)
 
-# --------------- 개설강좌계획서.xlsx(from 개신누리)에서 내가 수강하는 과목 정보 읽어오기 ---------------------------
+        # --------------- 개설강좌계획서.xlsx(from 개신누리)에서 내가 수강하는 과목 정보 읽어오기 ---------------------------
 
         lectures_info_list = pd.read_excel('./개설강좌(계획서)조회.xlsx',  # 상대참조(같은 디렉터리 내에 엑셀 파일 있다고 가정)
                                            header=0,  # 칼럼이 시작하는 곳
@@ -312,7 +468,7 @@ def add_function(request):
     time_input = "".join([date, "-", start_h])
     time = datetime.strptime(time_input, '%Y-%m-%d-%H:%M').replace(tzinfo=kst)
     if Data.objects.filter(sort='개인일정', name=name, context=content, content=date_list[time.weekday()],
-             time=time, start_h=int(start_h.split(":")[0]), end_h=int(end_h.split(":")[0])).count() == 0:
+                           time=time, start_h=int(start_h.split(":")[0]), end_h=int(end_h.split(":")[0])).count() == 0:
         Data(sort='개인일정', name=name, context=content, content=date_list[time.weekday()],
              time=time, start_h=int(start_h.split(":")[0]), end_h=int(end_h.split(":")[0])).save()
     return redirect('time_table:schedule')
@@ -386,13 +542,16 @@ def available_time(request, assignment_id):
             return redirect('time_table:schedule')
         now_date = date_list[now.weekday()]
         for _time in time_list:
-            temp = Data.objects.filter(Q(sort='시간표', content=now_date, start_h__lte=_time, end_h__gt=_time) | Q(sort='개인일정', content=now_date, start_h__lte=_time, end_h__gt=_time))
+            temp = Data.objects.filter(
+                Q(sort='시간표', content=now_date, start_h__lte=_time, end_h__gt=_time) | Q(sort='개인일정', content=now_date,
+                                                                                         start_h__lte=_time,
+                                                                                         end_h__gt=_time))
             if temp:
                 count = 0
             else:
                 if count == 0:
                     start_h = _time
-                count = count+1
+                count = count + 1
             print(temp)
             print(count)
             print(start_h)
@@ -403,11 +562,11 @@ def available_time(request, assignment_id):
                     Data.objects.filter(sort='개인일정', name=name, context=content).delete()
                 Data(sort='개인일정', name=name, context=content, content=now_date,
                      time=datetime.strptime(time_input, '%Y-%m-%d-%H:%M'),
-                     start_h=start_h, end_h=start_h+need_time).save()
+                     start_h=start_h, end_h=start_h + need_time).save()
                 return redirect('time_table:schedule')
 
 
-def schedule(request):
+def schedule(request):  # 일정들 DB에서 불러와서 출력
     now = datetime.now()
     now_date = date_list[datetime.today().weekday()]
 
@@ -420,31 +579,147 @@ def schedule(request):
     today_s = datetime(now.year, now.month, now.day)
     today_e = datetime(now.year, now.month, now.day, 23, 59)
     # 오늘 시간표, 일정 합쳐서 불러오기
-    today_list = Data.objects.filter(Q(sort='시간표', content=now_date, end_h__gte=now.hour) | Q(sort='개인일정', time__lte=today_e)).order_by('start_h')
+    today_list = Data.objects.filter(
+        Q(sort='시간표', content=now_date, end_h__gt=now.hour) | Q(sort='개인일정', time__lte=today_e)).order_by('start_h')
 
     # time_table
     time_list = ["09", "10", "11", "12", "13", "14", "15", "16", "17"]
     weekday = ['월', '화', '수', '목', '금', '토']
     # 시간별로 묶어서 저장
     time_table = []
-    for time in time_list:
+    for _time in time_list:
         # 요일별로 묶어서 저장
         sametime = []
         for date in weekday:
-            temp = Data.objects.filter(sort='시간표', content=date, start_h__lte=int(time), end_h__gt=int(time))
+            temp = Data.objects.filter(sort='시간표', content=date, start_h__lte=int(_time), end_h__gt=int(_time))
             if temp:
                 sametime.append(temp)
             else:
                 sametime.append('empty')
-        time_table.append({time: sametime})  # 시간이랑 요일별로 묶어서 저장한거 딕셔너리로 함께 저장
+        time_table.append({_time: sametime})  # 시간이랑 요일별로 묶어서 저장한거 딕셔너리로 함께 저장
 
     # 앞으로 남은 과제 읽어오기, 개인일정도 같이 읽어올 수 있도록 수정하기.
     data_list = Data.objects.filter(Q(sort='과제', time__gte=today_s) | Q(sort='개인일정', time__gt=today_e)).order_by('time')
-
     context = {'now': now, 'date': now_date, 'today_list': today_list,
                'time_table': time_table, 'data_list': data_list, 'today_e': today_e}
 
+    # ---------------- link to zoom ------------------------
+    #   과목 시작 시간과 현재 시간을 비교해서 실행
+    today_schedule = Data.objects.filter(sort='시간표', content=now_date, end_h__gt=now.hour)
+    if today_schedule:
+        lecture_info = today_schedule[0]  # 첫번째 강의
+        # 시작 시간 2분 전일 때 줌 링크 연결
+        if lecture_info.start_h - 1 == now.hour and now.minute == 58:
+            zoom_link(request.user, lecture_info.context)
+
     return render(request, 'template.html', context)
+
+
+def zoom_link(user, current_lecture):  # 해당 과목 내 공지 사항으로 들어가서 링크 받음
+
+    driver.get('https://cbnu.blackboard.com/')
+    # 가끔씩 학번이랑 비밀번호를 홈페이지에 입력하지 못하고 오류가 발생하는 경우가 있어서 추가.
+    try:
+        element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.NAME, "uid")))
+        # 로그인 되어있지 않는 경우 로그인
+        driver.find_element_by_name('uid').send_keys(Profile.objects.get(user=user).student_ID)  # 학번
+        driver.find_element_by_name('pswd').send_keys(Profile.objects.get(user=user).CBNU_PW)  # Blackboard 비밀번호
+        driver.find_element_by_xpath('//*[@id="entry-login"]').click()
+    except TimeoutException:
+        print('로그인상태')
+        pass
+    except UnexpectedAlertPresentException:  # 유저 정보 오기입
+        print("학번과 비밀번호를 확인해주십시오.")
+        return redirect('time_table:schedule')
+    finally:
+        driver.get('https://cbnu.blackboard.com/ultra/course')
+
+    try:
+        find = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.ID, 'course-columns-current')))
+    finally:
+        pass
+
+    # 페이지 아래에 과목명이 있을 경우 스크롤 다운 해야함
+    # zoom 주소로 연결했을 때 밑에 zoom 다운 경고 표시
+    scroll = driver.find_element_by_tag_name('body')
+    for num in range(0, 20):
+        try:  # 페이지 로딩 시간을 준다
+            scroll.click()
+            driver.find_element_by_tag_name('body').send_keys(Keys.PAGE_DOWN)
+            find = WebDriverWait(driver, 3).until(
+                EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, current_lecture)))
+        except TimeoutException:
+            continue
+
+        try:
+            course = driver.find_element_by_partial_link_text(current_lecture)  # 교과목명 검색
+            course.click()
+            break  # break 안 걸면 엉뚱한 곳으로 감
+        except NoSuchElementException:
+            pass
+
+        if num == 19:  # 모두 탐색 완료
+            print("해당 교과목이 존재하지 않습니다.")
+            return
+
+    # 과목 발견 후
+    try:
+        course = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.NAME, 'classic-learn-iframe')))
+    finally:
+        pass
+    driver.switch_to.frame('classic-learn-iframe')  # 블랙보드 과제란은 iframe 사용
+
+    try:
+        course = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'button-6')))
+    finally:
+        pass
+    notice = driver.find_element_by_class_name('button-6')  # button-6: '나의 공지 사항' 란의 '더보기' 버튼
+    notice.click()
+
+    try:
+        course = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located(
+                (By.ID, 'pageTitleText')))  # 공지 사항 페이지에서 페이지의 제목 '공지 사항'의 id인 pageTitleText
+    finally:
+        pass
+
+    # 스크롤 다운할 때 최상단에 있는 줌 링크 갖고 올 것!
+    scroll = driver.find_element_by_tag_name('body')
+    scroll.click()
+    for num in range(0, 20):
+        time.sleep(1)  # 페이지 로딩 시간을 준다
+
+        # TA 링크에 대해서도 테스트 해보고 싶은데 테스트를 할 수가 없다. 그래도 기존에 작동하던 최상단의 줌 링크를 가져오는 건 잘 실행된다.
+        # 괜히 정밀하게 하겠답시고 driver.find_element_by_class_name('clearfix') (<<공지사항의 클래스) 하면 공지사항 먼저 찾은 다음 .find를 수행하므로 위로 올라갔다 밑으로 내려갔다 반복함
+        try:
+            course = driver.find_element_by_partial_link_text('zoom.us')  # 줌 링크가 있는 요소 발견
+            print("줌링크발견")
+            go_to_zoom(course.text.strip())  # 줌 실행 화면을 창을 띄워서 보여주기 위함
+            return  # driver 설정이 다른 파일이 해당 링크를 입력받기
+            # coure.click()를 쓰지 않고 새 탭에서 여는 방식을 채택한 이유: 줌 링크를 열면 어떤 사람은 'zoom meetings를 여시겠습니까'가 뜸.
+            # '항상 zoom.us에서 연결된 앱에 있는 이 유형의 링크를 열도록 허용' 체크박스를 표시 안 하면 생기는데, 이거는 웹의 요소가 아니라서 웹크롤링으로 해결할 수 없음.
+
+        except NoSuchElementException:
+            pass
+
+        scroll.click()
+        driver.find_element_by_tag_name('body').send_keys(Keys.PAGE_DOWN)
+
+        if num == 19:
+            print("줌 링크가 존재하지 않습니다.")
+
+
+def go_to_zoom(link_text):
+    try:
+        _driver = webdriver.Chrome('/Users/chisanahn/Desktop/Python_Project/chromedriver.exe')  # 창 띄워야 함
+        _driver.get(link_text)  # 약 1분 정도 소요됨!! >> 따라서 수업 시작 1분 전에 줌 화면을 크롬에 띄움
+        time.sleep(60)  # 1분 후에 종료
+    except InvalidArgumentException:  # 잘못된 형식의 링크
+        print("해당 줌 페이지가 존재하지 않습니다.\n")
 
 
 def crawling(request):
@@ -458,8 +733,9 @@ def crawling(request):
             element = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.NAME, "uid")))
             # 로그인 되어있지 않는 경우 로그인
-            driver.find_element_by_name('uid').send_keys(request.POST.get('id'))  # 학번
-            driver.find_element_by_name('pswd').send_keys(request.POST.get('password'))  # Blackboard 비밀번호
+            driver.find_element_by_name('uid').send_keys(Profile.objects.get(user=request.user).student_ID)  # 학번
+            driver.find_element_by_name('pswd').send_keys(
+                Profile.objects.get(user=request.user).CBNU_PW)  # Blackboard 비밀번호
             driver.find_element_by_xpath('//*[@id="entry-login"]').click()
         except TimeoutException:
             print('로그인상태')
@@ -528,7 +804,8 @@ def crawling(request):
                             # time = contents[4].split(':')
                             # hour = time[0]
                             # minute = time[1]
-                            time_input = "".join(["20", contents[1], "-", contents[2], "-", contents[3], "-", contents[4]])
+                            time_input = "".join(
+                                ["20", contents[1], "-", contents[2], "-", contents[3], "-", contents[4]])
                     else:
                         content = details.find('div', class_="content").text.strip()
 
@@ -540,7 +817,8 @@ def crawling(request):
                         if Data.objects.filter(sort='과제', context=context_ellipsis, name=name,
                                                content=content).count() == 0:
                             Data(sort='과제', context=context_ellipsis, name=name,
-                                 content=content, time=datetime.strptime(time_input, '%Y-%m-%d-%H:%M').replace(tzinfo=kst)).save()
+                                 content=content,
+                                 time=datetime.strptime(time_input, '%Y-%m-%d-%H:%M').replace(tzinfo=kst)).save()
                     # 과제 외의 일정 일단 주석처리
                     # else:
                     #     if Data.objects.filter(sort=sort, context_ellipsis=context_ellipsis, name=name,
@@ -596,7 +874,8 @@ def crawling(request):
                         if Data.objects.filter(sort='과제', context=context_ellipsis, name=name,
                                                content=content).count() == 0:
                             Data(sort='과제', context=context_ellipsis, name=name,
-                                 content=content, time=datetime.strptime(time_input, '%Y-%m-%d-%H:%M').replace(tzinfo=kst)).save()
+                                 content=content,
+                                 time=datetime.strptime(time_input, '%Y-%m-%d-%H:%M').replace(tzinfo=kst)).save()
                     # 과제 외의 일정 일단 주석처리
                     # else:
                     #     if Data.objects.filter(sort=sort, context_ellipsis=context_ellipsis, name=name,
