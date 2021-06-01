@@ -42,7 +42,7 @@ date_list = ['월', '화', '수', '목', '금', '토', '일']
 
 def index(request):
     # imports photos and save it in database
-    photo = photos.objects.all()
+    photo = Icon.objects.all()
     # adding context
     ctx = {'photo':photo}
     return render(request, 'index.html', ctx)
