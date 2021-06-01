@@ -33,6 +33,7 @@ class Icon(models.Model):
 
 # 시간표, 과제, 개인일정 같은 DB로 통합
 class Data(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
     sort = models.CharField(max_length=20)  # 종류(시간표, 과제, 개인일정)
     name = models.TextField()               # 교수님, 제목, 제목
     context = models.TextField()            # 과목, 과목, 내용
@@ -50,6 +51,7 @@ class Data(models.Model):
 
 # 비교과 활동 저장할 모델
 class Activity(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
     name = models.TextField()  # 활동명
     registration_date = models.TextField()  # 모집기간
     activity_date = models.TextField()  # 활동기간
