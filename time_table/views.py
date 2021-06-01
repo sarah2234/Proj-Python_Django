@@ -35,7 +35,7 @@ options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 
 # chrome driver를 불러오고 위의 option을 적용시킴
 # CHROMEDRIVER_PATH 환경 변수에 개발하면서 사용할 본인 컴퓨터 안의 chromedrive 경로 저장
-# os.environ["CHROMEDRIVER_PATH"] = '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe'
+os.environ["CHROMEDRIVER_PATH"] = '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe'
 driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=options)
 
 date_list = ['월', '화', '수', '목', '금', '토', '일']
@@ -485,15 +485,6 @@ def edit_function(request, data_id):
     time = datetime.strptime(time_input, '%Y-%m-%d-%H:%M').replace(tzinfo=kst)
     Data(sort='개인일정', name=name, context=content, content=date_list[time.weekday()],
          time=time, start_h=int(start_h.split(":")[0]), end_h=int(end_h.split(":")[0])).save()
-    return redirect('time_table:schedule')
-
-
-def load(request):
-    """
-    Data 목록 출력
-    """
-    data_list = Data.objects.filter(sort='시간표').order_by('context')
-    context = {'data_list': data_list}
     return redirect('time_table:schedule')
 
 
