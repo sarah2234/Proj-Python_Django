@@ -12,13 +12,31 @@ Class-based views
 Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+    
+  from django.views.generic import TemplateView  
+ path('', TemplateView.as_view(template_name='template.html')),
+
 """
 from django.contrib import admin
-from django.urls import path, include
-from django.views.generic import TemplateView
+from django.shortcuts import redirect
+from django.urls import path
+from apps.common.views import DashboardView, user_login, HomeView, update_profile
+from django.contrib.auth import views as auth_views
+# from apps.common.forms import register
+
 
 urlpatterns = [
-    path('', TemplateView.as_view(template_name='template.html')),
-    path('time_table/', include('time_table.urls')),
     path('admin/', admin.site.urls),
+    path('dashboard/', DashboardView.as_view(), name='dashboard'),
+    path('', HomeView.as_view(), name='home'),
+    path('register/', update_profile, name='register'),
+    
+    path('login/', user_login, name='login'),
+
+    path('logout/', auth_views.LogoutView.as_view(
+        next_page='dashboard'
+        ),
+        name='logout'
+    ),
 ]
+
