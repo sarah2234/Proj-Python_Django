@@ -11,9 +11,6 @@ from .models import *
 from django.contrib import messages
 
 
-class HomeView(TemplateView):
-    template_name = 'common/home.html'
-
 class DashboardView(TemplateView):
     template_name = 'common/dashboard.html'
     login_url = reverse_lazy('login')
