@@ -47,8 +47,8 @@ webdriver 설치 for 웹크롤링
 -------------
 1. chromedrive 설치
 https://chromedriver.chromium.org/
-2. clone 받은 프로젝트에서 website/time_table/views.py에서 35번째줄에 chromedrive가 설치되어 있는 경로 입력
-
+2. clone 받은 프로젝트에서 website/time_table/views.py에서 38번째줄에 chromedrive가 설치되어 있는 경로 입력
+(37번째줄 주석참고)
 
 
 git/github 관련 안내
