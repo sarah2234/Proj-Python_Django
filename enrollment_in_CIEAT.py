@@ -17,10 +17,7 @@ options.add_argument('--incognito')
 options.add_argument('--headless')
 options.add_argument('--start-fullscreen')
 
-driver = webdriver.Chrome(
-    '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe',
-    chrome_options=options)
-
+driver=webdriver.Chrome('/Users/이승현/chromedriver/chromedriver', options=options)  # 본인 컴퓨터에서 chromedrive가 있는 경로 입력
 
 def interesting_CIEAT_activities_by_major(id, password, operating_department):  # 과 이름으로 비교과 활동 찾기
     if operating_department == '-':  # 없는 경우

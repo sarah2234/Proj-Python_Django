@@ -12,14 +12,14 @@ from django.shortcuts import render, redirect
 from datetime import datetime, timedelta
 from pytz import timezone, utc
 
-from .models import Data, Activity, Profile
+from .models import Data, Activity, Profile, Icon
 from django.db.models import Q
 import re
+import os
 
 import pandas as pd  # 엑셀을 다루는 라이브러리 pandas
 from selenium.webdriver.common.keys import Keys
 import time
-import schedule
 
 # 한국 시간대 사용
 kst = timezone('Asia/Seoul')
@@ -30,17 +30,22 @@ options.add_argument('--ignore-certificate-errors')
 options.add_argument('--incognito')
 options.add_argument('--headless')
 options.add_argument('--start-fullscreen')
+options.add_argument('--no-sandbox')
+options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 
 # chrome driver를 불러오고 위의 option을 적용시킴
 # driver = webdriver.Chrome()  # 본인 컴퓨터에서 chromedrive가 있는 경로 입력
 # 입력예시
-driver = webdriver.Chrome(
-    '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe',
-    chrome_options=options)
-
+driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=options)
 
 date_list = ['월', '화', '수', '목', '금', '토', '일']
 
+def index(request):
+    # imports photos and save it in database
+    photo = photos.objects.all()
+    # adding context
+    ctx = {'photo':photo}
+    return render(request, 'index.html', ctx)
 
 def cieat_interest(request):
     activity_list = Activity.objects.order_by('department')
@@ -214,7 +219,7 @@ def load_interest(request):
         major2 = major2.split("복수전공 : ")
         major_sub = major2[0].rstrip()  # 복수전공이나 부전공을 안 해서 씨앗에서 어떻게 표시되는지 잘 모르겠음...
         major_multiple = major2[1].rstrip()
-
+        
         user_major = [major, major_sub, major_multiple]
 
         # 입력한 키워드 있으면 추가
@@ -275,6 +280,7 @@ def load_interest(request):
                                                            activity_date=activity_date, department=department).count() == 0:
                                     Activity(name=name, registration_date=registration_date,
                                              activity_date=activity_date, department=department).save()
+
                 except NoSuchElementException or TimeoutException:
                     print("현재 신청할 수 있는 비교과 활동이 존재하지 않습니다.\n")
                     pass

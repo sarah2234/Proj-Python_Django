@@ -23,4 +23,6 @@ urlpatterns = [
     path('cieat_interest', views.cieat_interest, name='cieat_interest'),
     path('cieat_interest/load', views.load_interest, name='load_interest'),
     path('cieat_interest/submit', views.cieat_submit, name='cieat_submit'),
+    path('admin/', admin.site.urls),
+    path('image_upload', views.index, name='index'),
 ]
