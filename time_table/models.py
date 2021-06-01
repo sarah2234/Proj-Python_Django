@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from cloudinary.models import CloudinaryField
 
 
 class Profile(models.Model):
@@ -24,11 +23,6 @@ def create_user_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
-
-
-class Icon(models.Model):
-    title = models.CharField(max_length=100)
-    image = CloudinaryField('image')
 
 
 # 시간표, 과제, 개인일정 같은 DB로 통합
