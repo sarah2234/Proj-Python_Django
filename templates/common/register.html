@@ -25,6 +25,7 @@
                         <h2 class="form-title">Sign up</h2>
                         <form method="POST" action="" class="register-form" id="register-form">
                             {% csrf_token %}
+                            {% include "form_errors.html" %}
                             
                             <div class="form-group">
                                 <label for="username"><i class="zmdi zmdi-account-circle material-icons-name"></i></label>

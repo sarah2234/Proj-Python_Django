@@ -76,11 +76,10 @@
             </div>
             <a class="navbar-brand" href="javascript:;">대학생 학습 도우미</a>
           </div>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-bar navbar-kebab"></span>
-            <span class="navbar-toggler-bar navbar-kebab"></span>
-            <span class="navbar-toggler-bar navbar-kebab"></span>
-          </button>
+          <form method="post" action="{% url 'logout' %}">
+              {% csrf_token %}
+              <button type="submit">로그아웃</button>
+          </form>
           <div class="collapse navbar-collapse justify-content-end" id="navigation">
             <form>
               <div class="input-group no-border">
