@@ -4,7 +4,8 @@ from django.http import HttpResponse
 from django.views.generic import TemplateView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .forms import SignUpForm, ProfileForm
+from apps.common.forms import UserForm
+from apps.userprofile.models import Profile
 from django.urls import reverse_lazy
   
 # from .models import *
@@ -22,32 +23,50 @@ app_name = 'time_table'
 
 
 def update_profile(request):
-
-    if request.method == 'POST':
-        form = SignUpForm(request.POST, instance=request.user)
-        profile_form = ProfileForm(request.POST, instance=request.user.profile)
-
-        print(form)
-        print(profile_form)
-        if form.is_valid() and profile_form.is_valid():
-            print('생성')
+    """
+    계정생성
+    """
+    if request.method == "POST":
+        form = UserForm(request.POST)
+        if form.is_valid():
             user = form.save()
+            Profile(user=user, student_ID=request.POST['student_ID'], CBNU_PW=request.POST['CBNU_PW']).save()
 
-            profile = profile_form.save(commit=False)
-            profile.user = user
-            
-            profile.save()
-            # username = form.cleaned_data.get('username')
-            # password = form.cleaned_data.get('password1')
-            # user = authenticate(request, username=username, password=password)
-            return redirect('login')
-
+            username = form.cleaned_data.get('username')
+            raw_password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=raw_password)
+            login(request, user)
+            return redirect('time_table:schedule')
     else:
-        form = SignUpForm()
-        profile_form = ProfileForm()
-    
-    context = {'form': form, 'profile_form': profile_form}
-    return render(request, 'common/register.html', context)
+        form = UserForm()
+    return render(request, 'common/register.html', {'form': form})
+
+
+# def update_profile(request):
+#
+#     if request.method == 'POST':
+#         form = SignUpForm(request.POST)
+#         profile_form = ProfileForm(request.POST)
+#
+#         if form.is_valid() and profile_form.is_valid():
+#             print('생성')
+#             user = form.save()
+#
+#             profile = profile_form.save(commit=False)
+#             profile.user = user
+#
+#             profile.save()
+#             # username = form.cleaned_data.get('username')
+#             # password = form.cleaned_data.get('password1')
+#             # user = authenticate(request, username=username, password=password)
+#             return redirect('login')
+#
+#     else:
+#         form = SignUpForm()
+#         profile_form = ProfileForm()
+#
+#     context = {'form': form, 'profile_form': profile_form}
+#     return render(request, 'common/register.html', context)
 
 
 # def register(request):
