@@ -337,6 +337,9 @@ def load_timetable(request):
             print("잠시 후 다시 이용해 주십시오.")
             return redirect('time_table:setting')
 
+        # 기존에 존재하는 시간표 초기화
+        Data.objects.filter(sort='시간표', user=request.user).delete()
+
 # ------------------------- CIEAT의 마이페이지에서 과목명 가져오기 ---------------------------
 
         tbody = driver.find_element_by_xpath('//*[@id="mileageRcrHistList"]/div').find_element_by_tag_name(
