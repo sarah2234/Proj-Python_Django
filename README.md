@@ -103,7 +103,7 @@ Heroku 서버 구축 방법
 * runtime.txt
   * 사용하고 있는 python의 버전에 대한 정보 기입 (python-3.9.4)
 * Pipfile
-  * recreating Pipfile: https://stackoverflow.com/questions/56188440/python-3-how-do-you-re-create-your-pipfile
+  * https://www.caxy.com/blog/starting-scratch-creating-and-installing-python-app-heroku
 * setup.py
   * https://www.jetbrains.com/help/pycharm/creating-and-running-setup-py.html
 * views.py
