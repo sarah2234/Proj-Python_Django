@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup as bs
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, UnexpectedAlertPresentException, NoSuchElementException
+from selenium.common.exceptions import TimeoutException, UnexpectedAlertPresentException, NoSuchElementException, InvalidArgumentException
 
 from django.shortcuts import render, redirect
 from datetime import datetime, timedelta
@@ -19,6 +19,7 @@ import re
 import pandas as pd  # 엑셀을 다루는 라이브러리 pandas
 from selenium.webdriver.common.keys import Keys
 import time
+import schedule
 
 # 한국 시간대 사용
 kst = timezone('Asia/Seoul')
@@ -551,8 +552,7 @@ def available_time(request, assignment_id):
                 return redirect('time_table:schedule')
 
 
-def schedule(request):
-# ---------------- 일정들 DB에서 불러와서 출력 ------------------------
+def schedule(request):  # 일정들 DB에서 불러와서 출력
     now = datetime.now()
     now_date = date_list[datetime.today().weekday()]
 
@@ -565,33 +565,146 @@ def schedule(request):
     today_s = datetime(now.year, now.month, now.day)
     today_e = datetime(now.year, now.month, now.day, 23, 59)
     # 오늘 시간표, 일정 합쳐서 불러오기
-    today_list = Data.objects.filter(Q(sort='시간표', content=now_date, end_h__gte=now.hour) | Q(sort='개인일정', time__lte=today_e)).order_by('start_h')
+    today_list = Data.objects.filter(Q(sort='시간표', content=now_date, end_h__gt=now.hour) | Q(sort='개인일정', time__lte=today_e)).order_by('start_h')
 
     # time_table
     time_list = ["09", "10", "11", "12", "13", "14", "15", "16", "17"]
     weekday = ['월', '화', '수', '목', '금', '토']
     # 시간별로 묶어서 저장
     time_table = []
-    for time in time_list:
+    for _time in time_list:
         # 요일별로 묶어서 저장
         sametime = []
         for date in weekday:
-            temp = Data.objects.filter(sort='시간표', content=date, start_h__lte=int(time), end_h__gt=int(time))
+            temp = Data.objects.filter(sort='시간표', content=date, start_h__lte=int(_time), end_h__gt=int(_time))
             if temp:
                 sametime.append(temp)
             else:
                 sametime.append('empty')
-        time_table.append({time: sametime})  # 시간이랑 요일별로 묶어서 저장한거 딕셔너리로 함께 저장
+        time_table.append({_time: sametime})  # 시간이랑 요일별로 묶어서 저장한거 딕셔너리로 함께 저장
 
     # 앞으로 남은 과제 읽어오기, 개인일정도 같이 읽어올 수 있도록 수정하기.
     data_list = Data.objects.filter(Q(sort='과제', time__gte=today_s) | Q(sort='개인일정', time__gt=today_e)).order_by('time')
-
     context = {'now': now, 'date': now_date, 'today_list': today_list,
                'time_table': time_table, 'data_list': data_list, 'today_e': today_e}
 
 # ---------------- link to zoom ------------------------
+#   과목 시작 시간과 현재 시간을 비교해서 실행
+    today_schedule = Data.objects.filter(sort='시간표', content=now_date, end_h__gt=now.hour)
+    if today_schedule:
+        lecture_info = today_schedule[0]  # 첫번째 강의
+        # 시작 시간 2분 전일 때 줌 링크 연결
+        if lecture_info.start_h - 1 == now.hour and now.minute == 58:
+            zoom_link(request.user, lecture_info.context)
 
     return render(request, 'template.html', context)
+
+
+def zoom_link(user, current_lecture):  # 해당 과목 내 공지 사항으로 들어가서 링크 받음
+
+    driver.get('https://cbnu.blackboard.com/')
+    # 가끔씩 학번이랑 비밀번호를 홈페이지에 입력하지 못하고 오류가 발생하는 경우가 있어서 추가.
+    try:
+        element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.NAME, "uid")))
+        # 로그인 되어있지 않는 경우 로그인
+        driver.find_element_by_name('uid').send_keys(Profile.objects.get(user=user).student_ID)  # 학번
+        driver.find_element_by_name('pswd').send_keys(Profile.objects.get(user=user).CBNU_PW)  # Blackboard 비밀번호
+        driver.find_element_by_xpath('//*[@id="entry-login"]').click()
+    except TimeoutException:
+        print('로그인상태')
+        pass
+    except UnexpectedAlertPresentException:  # 유저 정보 오기입
+        print("학번과 비밀번호를 확인해주십시오.")
+        return redirect('time_table:schedule')
+    finally:
+        driver.get('https://cbnu.blackboard.com/ultra/course')
+
+    try:
+        find = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.ID, 'course-columns-current')))
+    finally:
+        pass
+
+    # 페이지 아래에 과목명이 있을 경우 스크롤 다운 해야함
+    # zoom 주소로 연결했을 때 밑에 zoom 다운 경고 표시
+    scroll = driver.find_element_by_tag_name('body')
+    for num in range(0, 20):
+        try:  # 페이지 로딩 시간을 준다
+            scroll.click()
+            driver.find_element_by_tag_name('body').send_keys(Keys.PAGE_DOWN)
+            find = WebDriverWait(driver, 3).until(
+                EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, current_lecture)))
+        except TimeoutException:
+            continue
+
+        try:
+            course = driver.find_element_by_partial_link_text(current_lecture)  # 교과목명 검색
+            course.click()
+            break  # break 안 걸면 엉뚱한 곳으로 감
+        except NoSuchElementException:
+            pass
+
+        if num == 19:  # 모두 탐색 완료
+            print("해당 교과목이 존재하지 않습니다.")
+            return
+
+# 과목 발견 후
+    try:
+        course = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.NAME, 'classic-learn-iframe')))
+    finally:
+        pass
+    driver.switch_to.frame('classic-learn-iframe')  # 블랙보드 과제란은 iframe 사용
+
+    try:
+        course = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.CLASS_NAME, 'button-6')))
+    finally:
+        pass
+    notice = driver.find_element_by_class_name('button-6')  # button-6: '나의 공지 사항' 란의 '더보기' 버튼
+    notice.click()
+
+    try:
+        course = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located(
+                (By.ID, 'pageTitleText')))  # 공지 사항 페이지에서 페이지의 제목 '공지 사항'의 id인 pageTitleText
+    finally:
+        pass
+
+# 스크롤 다운할 때 최상단에 있는 줌 링크 갖고 올 것!
+    scroll = driver.find_element_by_tag_name('body')
+    scroll.click()
+    for num in range(0, 20):
+        time.sleep(1)  # 페이지 로딩 시간을 준다
+
+# TA 링크에 대해서도 테스트 해보고 싶은데 테스트를 할 수가 없다. 그래도 기존에 작동하던 최상단의 줌 링크를 가져오는 건 잘 실행된다.
+# 괜히 정밀하게 하겠답시고 driver.find_element_by_class_name('clearfix') (<<공지사항의 클래스) 하면 공지사항 먼저 찾은 다음 .find를 수행하므로 위로 올라갔다 밑으로 내려갔다 반복함
+        try:
+            course = driver.find_element_by_partial_link_text('zoom.us')  # 줌 링크가 있는 요소 발견
+            print("줌링크발견")
+            go_to_zoom(course.text.strip())  # 줌 실행 화면을 창을 띄워서 보여주기 위함
+            return  # driver 설정이 다른 파일이 해당 링크를 입력받기
+            # coure.click()를 쓰지 않고 새 탭에서 여는 방식을 채택한 이유: 줌 링크를 열면 어떤 사람은 'zoom meetings를 여시겠습니까'가 뜸.
+            # '항상 zoom.us에서 연결된 앱에 있는 이 유형의 링크를 열도록 허용' 체크박스를 표시 안 하면 생기는데, 이거는 웹의 요소가 아니라서 웹크롤링으로 해결할 수 없음.
+
+        except NoSuchElementException:
+            pass
+
+        scroll.click()
+        driver.find_element_by_tag_name('body').send_keys(Keys.PAGE_DOWN)
+
+        if num == 19:
+            print("줌 링크가 존재하지 않습니다.")
+
+
+def go_to_zoom(link_text):
+    try:
+        _driver = webdriver.Chrome('/Users/chisanahn/Desktop/Python_Project/chromedriver.exe')  # 창 띄워야 함
+        _driver.get(link_text)  # 약 1분 정도 소요됨!! >> 따라서 수업 시작 1분 전에 줌 화면을 크롬에 띄움
+        time.sleep(60)  # 1분 후에 종료
+    except InvalidArgumentException:  # 잘못된 형식의 링크
+        print("해당 줌 페이지가 존재하지 않습니다.\n")
 
 
 def crawling(request):
