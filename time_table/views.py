@@ -12,7 +12,7 @@ from django.shortcuts import render, redirect
 from datetime import datetime, timedelta
 from pytz import timezone, utc
 
-from .models import Data, Activity
+from .models import Data, Activity, Icon
 from django.db.models import Q
 import re
 import os
@@ -40,6 +40,12 @@ driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), c
 
 date_list = ['월', '화', '수', '목', '금', '토', '일']
 
+def index(request):
+    # imports photos and save it in database
+    photo = photos.objects.all()
+    # adding context
+    ctx = {'photo':photo}
+    return render(request, 'index.html', ctx)
 
 def cieat_interest(request):
     activity_list = Activity.objects.order_by('department')

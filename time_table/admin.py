@@ -2,6 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 from .models import Data, Activity
+from .models import Icon
 
 
 class DataAdmin(admin.ModelAdmin):
@@ -14,3 +15,4 @@ class ActivityAdmin(admin.ModelAdmin):
 
 admin.site.register(Data, DataAdmin)
 admin.site.register(Activity, ActivityAdmin)
+admin.site.register(Icon)

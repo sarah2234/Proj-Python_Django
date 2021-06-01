@@ -1,4 +1,10 @@
 from django.db import models
+from cloudinary.models import CloudinaryField
+
+
+class Icon(models.Model):
+    title = models.CharField(max_length=100)
+    image = CloudinaryField('image')
 
 
 # 시간표, 과제, 개인일정 같은 DB로 통합
