@@ -35,14 +35,14 @@ options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 
 # chrome driver를 불러오고 위의 option을 적용시킴
 # CHROMEDRIVER_PATH 환경 변수에 개발하면서 사용할 본인 컴퓨터 안의 chromedrive 경로 저장
-os.environ["CHROMEDRIVER_PATH"] = '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe'
+# os.environ["CHROMEDRIVER_PATH"] = '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe'
 driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=options)
 
 date_list = ['월', '화', '수', '목', '금', '토', '일']
 
 
 def cieat_interest(request):
-    activity_list = Activity.objects.order_by('department')
+    activity_list = Activity.objects.filter(user=request.user).order_by('department')
     context = {'activity_list': activity_list}
     return render(request, 'cieat.html', context)
 
@@ -253,9 +253,9 @@ def load_interest(request):
                                 activity_date = activity_detail[1].find_elements_by_tag_name('span')[1].text.strip()  # 활동 기간
 
                                 if Activity.objects.filter(name=name, registration_date=registration_date,
-                                                           activity_date=activity_date, department=department).count() == 0:
+                                                           activity_date=activity_date, department=department, user=request.user).count() == 0:
                                     Activity(name=name, registration_date=registration_date,
-                                             activity_date=activity_date, department=department).save()
+                                             activity_date=activity_date, department=department, user=request.user).save()
 
                     # 활동명 검색
                     name = activity.find_element_by_tag_name('dt').text.strip()  # 활동명
@@ -271,9 +271,9 @@ def load_interest(request):
                                     1].text.strip()  # 활동 기간
 
                                 if Activity.objects.filter(name=name, registration_date=registration_date,
-                                                           activity_date=activity_date, department=department).count() == 0:
+                                                           activity_date=activity_date, department=department, user=request.user).count() == 0:
                                     Activity(name=name, registration_date=registration_date,
-                                             activity_date=activity_date, department=department).save()
+                                             activity_date=activity_date, department=department, user=request.user).save()
 
                 except NoSuchElementException or TimeoutException:
                     print("현재 신청할 수 있는 비교과 활동이 존재하지 않습니다.\n")
@@ -336,6 +336,9 @@ def load_timetable(request):
             print("현재 서비스가 원활하지 않습니다.")
             print("잠시 후 다시 이용해 주십시오.")
             return redirect('time_table:setting')
+
+        # 기존에 존재하는 시간표 초기화
+        Data.objects.filter(sort='시간표', user=request.user).delete()
 
 # ------------------------- CIEAT의 마이페이지에서 과목명 가져오기 ---------------------------
 
@@ -416,25 +419,19 @@ def load_timetable(request):
                         time_2_organized = [day_of_second_lecture,
                                             int(each_time_of_second_lecture[0]) + 8,
                                             int(each_time_of_second_lecture[-1]) + 9]
-                        if Data.objects.filter(sort='시간표', name=data[1], context=data[0], content=time_1_organized[0],
-                                               start_h=time_1_organized[1], end_h=time_1_organized[2]).count() == 0:
-                            Data(sort='시간표', name=data[1], context=data[0], content=time_1_organized[0],
-                                 start_h=time_1_organized[1], end_h=time_1_organized[2]).save()
 
-                        if Data.objects.filter(sort='시간표', name=data[1], context=data[0], content=time_2_organized[0],
-                                               start_h=time_2_organized[1], end_h=time_2_organized[2]).count() == 0:
-                            Data(sort='시간표', name=data[1], context=data[0], content=time_2_organized[0],
-                                 start_h=time_2_organized[1], end_h=time_2_organized[2]).save()
+                        Data(sort='시간표', name=data[1], context=data[0], content=time_1_organized[0],
+                             start_h=time_1_organized[1], end_h=time_1_organized[2], user=request.user).save()
+                        Data(sort='시간표', name=data[1], context=data[0], content=time_2_organized[0],
+                             start_h=time_2_organized[1], end_h=time_2_organized[2], user=request.user).save()
                         # 교수님, 과목명, 요일, 시작시간, 끝시간 DB에 저장
                     except IndexError:  # 두 번째 시간 없을 때 time_1_organized만 넣기
-                        if Data.objects.filter(sort='시간표', name=data[1], context=data[0], content=time_1_organized[0],
-                                               start_h=time_1_organized[1], end_h=time_1_organized[2]).count() == 0:
-                            Data(sort='시간표', name=data[1], context=data[0], content=time_1_organized[0],
-                                 start_h=time_1_organized[1], end_h=time_1_organized[2]).save()
+                        Data(sort='시간표', name=data[1], context=data[0], content=time_1_organized[0],
+                             start_h=time_1_organized[1], end_h=time_1_organized[2], user=request.user).save()
                         # time_2_organized는 try문 안에 선언
 
     # DB에서 시간표 읽어와서 출력
-    context = {'class': Data.objects.filter(sort='시간표').order_by('context')}
+    context = {'class': Data.objects.filter(sort='시간표', user=request.user).order_by('context')}
     return render(request, 'time_table/choose_timetable.html', context)
 
 
@@ -457,9 +454,9 @@ def add_function(request):
     time_input = "".join([date, "-", start_h])
     time = datetime.strptime(time_input, '%Y-%m-%d-%H:%M').replace(tzinfo=kst)
     if Data.objects.filter(sort='개인일정', name=name, context=content, content=date_list[time.weekday()],
-             time=time, start_h=int(start_h.split(":")[0]), end_h=int(end_h.split(":")[0])).count() == 0:
+                           time=time, start_h=int(start_h.split(":")[0]), end_h=int(end_h.split(":")[0]), user=request.user).count() == 0:
         Data(sort='개인일정', name=name, context=content, content=date_list[time.weekday()],
-             time=time, start_h=int(start_h.split(":")[0]), end_h=int(end_h.split(":")[0])).save()
+             time=time, start_h=int(start_h.split(":")[0]), end_h=int(end_h.split(":")[0]), user=request.user).save()
     return redirect('time_table:schedule')
 
 
@@ -484,7 +481,7 @@ def edit_function(request, data_id):
     time_input = "".join([date, "-", start_h])
     time = datetime.strptime(time_input, '%Y-%m-%d-%H:%M').replace(tzinfo=kst)
     Data(sort='개인일정', name=name, context=content, content=date_list[time.weekday()],
-         time=time, start_h=int(start_h.split(":")[0]), end_h=int(end_h.split(":")[0])).save()
+         time=time, start_h=int(start_h.split(":")[0]), end_h=int(end_h.split(":")[0]), user=request.user).save()
     return redirect('time_table:schedule')
 
 
@@ -522,7 +519,8 @@ def available_time(request, assignment_id):
             return redirect('time_table:schedule')
         now_date = date_list[now.weekday()]
         for _time in time_list:
-            temp = Data.objects.filter(Q(sort='시간표', content=now_date, start_h__lte=_time, end_h__gt=_time) | Q(sort='개인일정', content=now_date, start_h__lte=_time, end_h__gt=_time))
+            temp = Data.objects.filter(Q(sort='시간표', content=now_date, start_h__lte=_time, end_h__gt=_time, user=request.user)
+                                       | Q(sort='개인일정', content=now_date, start_h__lte=_time, end_h__gt=_time, user=request.user))
             if temp:
                 count = 0
             else:
@@ -535,11 +533,11 @@ def available_time(request, assignment_id):
             if count == need_time:
                 time_input = "".join([str(now.year), "-", str(now.month), "-", str(now.day), "-", str(start_h), ":00"])
                 # 이미 이 과제에 대한 일정이 있을 경우 삭제하고 추가
-                if Data.objects.filter(sort='개인일정', name=name, context=content).count() != 0:
-                    Data.objects.filter(sort='개인일정', name=name, context=content).delete()
+                if Data.objects.filter(sort='개인일정', name=name, context=content, user=request.user).count() != 0:
+                    Data.objects.filter(sort='개인일정', name=name, context=content, user=request.user).delete()
                 Data(sort='개인일정', name=name, context=content, content=now_date,
                      time=datetime.strptime(time_input, '%Y-%m-%d-%H:%M'),
-                     start_h=start_h, end_h=start_h+need_time).save()
+                     start_h=start_h, end_h=start_h+need_time, user=request.user).save()
                 return redirect('time_table:schedule')
 
 
@@ -548,15 +546,16 @@ def schedule(request):  # 일정들 DB에서 불러와서 출력
     now_date = date_list[datetime.today().weekday()]
 
     # 날짜 지난 과제 삭제
-    Data.objects.filter(sort='과제', time__lt=now).delete()
+    Data.objects.filter(sort='과제', time__lt=now, user=request.user).delete()
     # 날짜 지난 일정 삭제
-    Data.objects.filter(sort='개인일정', time__lt=now, end_h__lt=now.hour).delete()
+    Data.objects.filter(sort='개인일정', time__lt=now, end_h__lt=now.hour, user=request.user).delete()
 
     # list_schedule. 시간 순서대로 정렬.
     today_s = datetime(now.year, now.month, now.day)
     today_e = datetime(now.year, now.month, now.day, 23, 59)
     # 오늘 시간표, 일정 합쳐서 불러오기
-    today_list = Data.objects.filter(Q(sort='시간표', content=now_date, end_h__gt=now.hour) | Q(sort='개인일정', time__lte=today_e)).order_by('start_h')
+    today_list = Data.objects.filter(Q(sort='시간표', content=now_date, end_h__gt=now.hour, user=request.user)
+                                     | Q(sort='개인일정', time__lte=today_e), user=request.user).order_by('start_h')
 
     # time_table
     time_list = ["09", "10", "11", "12", "13", "14", "15", "16", "17"]
@@ -567,7 +566,7 @@ def schedule(request):  # 일정들 DB에서 불러와서 출력
         # 요일별로 묶어서 저장
         sametime = []
         for date in weekday:
-            temp = Data.objects.filter(sort='시간표', content=date, start_h__lte=int(_time), end_h__gt=int(_time))
+            temp = Data.objects.filter(sort='시간표', content=date, start_h__lte=int(_time), end_h__gt=int(_time), user=request.user)
             if temp:
                 sametime.append(temp)
             else:
@@ -575,13 +574,14 @@ def schedule(request):  # 일정들 DB에서 불러와서 출력
         time_table.append({_time: sametime})  # 시간이랑 요일별로 묶어서 저장한거 딕셔너리로 함께 저장
 
     # 앞으로 남은 과제 읽어오기, 개인일정도 같이 읽어올 수 있도록 수정하기.
-    data_list = Data.objects.filter(Q(sort='과제', time__gte=today_s) | Q(sort='개인일정', time__gt=today_e)).order_by('time')
+    data_list = Data.objects.filter(Q(sort='과제', time__gte=today_s, user=request.user)
+                                    | Q(sort='개인일정', time__gt=today_e), user=request.user).order_by('time')
     context = {'now': now, 'date': now_date, 'today_list': today_list,
                'time_table': time_table, 'data_list': data_list, 'today_e': today_e}
 
 # ---------------- link to zoom ------------------------
 #   과목 시작 시간과 현재 시간을 비교해서 실행
-    today_schedule = Data.objects.filter(sort='시간표', content=now_date, end_h__gt=now.hour)
+    today_schedule = Data.objects.filter(sort='시간표', content=now_date, end_h__gt=now.hour, user=request.user)
     if today_schedule:
         lecture_info = today_schedule[0]  # 첫번째 강의
         # 시작 시간 2분 전일 때 줌 링크 연결
@@ -789,9 +789,9 @@ def crawling(request):
                     # 중복된 데이터는 DB에 저장하지 않는다.
                     if sort == '과제':
                         if Data.objects.filter(sort='과제', context=context_ellipsis, name=name,
-                                               content=content).count() == 0:
+                                               content=content, user=request.user).count() == 0:
                             Data(sort='과제', context=context_ellipsis, name=name,
-                                 content=content, time=datetime.strptime(time_input, '%Y-%m-%d-%H:%M').replace(tzinfo=kst)).save()
+                                 content=content, time=datetime.strptime(time_input, '%Y-%m-%d-%H:%M').replace(tzinfo=kst), user=request.user).save()
                     # 과제 외의 일정 일단 주석처리
                     # else:
                     #     if Data.objects.filter(sort=sort, context_ellipsis=context_ellipsis, name=name,
@@ -847,7 +847,7 @@ def crawling(request):
                         if Data.objects.filter(sort='과제', context=context_ellipsis, name=name,
                                                content=content).count() == 0:
                             Data(sort='과제', context=context_ellipsis, name=name,
-                                 content=content, time=datetime.strptime(time_input, '%Y-%m-%d-%H:%M').replace(tzinfo=kst)).save()
+                                 content=content, time=datetime.strptime(time_input, '%Y-%m-%d-%H:%M').replace(tzinfo=kst), user=request.user).save()
                     # 과제 외의 일정 일단 주석처리
                     # else:
                     #     if Data.objects.filter(sort=sort, context_ellipsis=context_ellipsis, name=name,
