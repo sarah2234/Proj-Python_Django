@@ -43,12 +43,16 @@ date_list = ['월', '화', '수', '목', '금', '토', '일']
 
 
 def cieat_interest(request):
+    if request.user.id is None:
+        return redirect('login')
     activity_list = Activity.objects.filter(user=request.user).order_by('department')
     context = {'activity_list': activity_list}
     return render(request, 'cieat.html', context)
 
 
 def cieat_submit(request):
+    if request.user.id is None:
+        return redirect('login')
     if request.method == "GET":
         return redirect('time_table:choose_timetable')
     elif request.method == "POST":
@@ -173,6 +177,8 @@ def cieat_submit(request):
 
 
 def load_interest(request):
+    if request.user.id is None:
+        return redirect('login')
     if request.method == "GET":
         return redirect('time_table:setting')
     elif request.method == "POST":
@@ -292,6 +298,8 @@ def load_interest(request):
 
 
 def choose_timetable(request):
+    if request.user.id is None:
+        return redirect('login')
     if request.method == "GET":
         return redirect('time_table:choose_timetable')
     elif request.method == "POST":
@@ -301,6 +309,8 @@ def choose_timetable(request):
 
 
 def load_timetable(request):
+    if request.user.id is None:
+        return redirect('login')
     pd.options.display.max_rows = 22  # 데이터 프레임 표시 최대 열수를 22로 지정
     pd.set_option('display.max_columns', 3668)  # 데이터 프레임 표시 최대 행수를 3668로 지정
 
@@ -437,16 +447,22 @@ def load_timetable(request):
 
 
 def setting(request):
+    if request.user.id is None:
+        return redirect('login')
     return render(request, 'setting.html')
     # return redirect('time_table:setting')
 
 
 def add_schedule(request):
+    if request.user.id is None:
+        return redirect('login')
     return render(request, 'time_table/add_schedule.html')
 
 
 # 지금은 특정 날짜, 시간만 입력받을 수 있는데 추후에 요일별 반복 기능도 추가하기.
 def add_function(request):
+    if request.user.id is None:
+        return redirect('login')
     name = request.POST.get('name')
     content = request.POST.get('content')
     date = request.POST.get('date')
@@ -462,17 +478,23 @@ def add_function(request):
 
 
 def edit_schedule(request, data_id):
+    if request.user.id is None:
+        return redirect('login')
     data = Data.objects.get(id=data_id)
     context = {'data': data}
     return render(request, 'time_table/edit_schedule.html', context)
 
 
 def delete_function(request, data_id):
+    if request.user.id is None:
+        return redirect('login')
     Data.objects.get(id=data_id).delete()
     return redirect('time_table:schedule')
 
 
 def edit_function(request, data_id):
+    if request.user.id is None:
+        return redirect('login')
     Data.objects.get(id=data_id).delete()
     name = request.POST.get('name')
     content = request.POST.get('content')
@@ -487,6 +509,8 @@ def edit_function(request, data_id):
 
 
 def delete_assignment(request, data_id):
+    if request.user.id is None:
+        return redirect('login')
     t = Data.objects.get(id=data_id)
     t.valid = 0
     t.save()
@@ -494,12 +518,16 @@ def delete_assignment(request, data_id):
 
 
 def assignment_schedule(request, assignment_id):
+    if request.user.id is None:
+        return redirect('login')
     assignment = Data.objects.get(id=assignment_id)
     context = {'assignment': assignment}
     return render(request, 'time_table/assignment_schedule.html', context)
 
 
 def available_time(request, assignment_id):
+    if request.user.id is None:
+        return redirect('login')
     # schedule 함수랑 비슷하게 오늘부터 과제 마감일까지 시간표, 개인일정 쭉 읽어오는데
     # 요일, 시간에 항목이 있으면 count = 0, 없으면 count++해서 count == need_time이면 일정 생성.
     # count = 0일때 start_h 업데이트
@@ -543,6 +571,8 @@ def available_time(request, assignment_id):
 
 
 def schedule(request):  # 일정들 DB에서 불러와서 출력
+    if request.user.id is None:
+        return redirect('login')
     print(Profile.objects.get(user=request.user).student_ID)
     now = datetime.now()
     now_date = date_list[datetime.today().weekday()]
@@ -701,6 +731,8 @@ def go_to_zoom(link_text):
 
 
 def crawling(request):
+    if request.user.id is None:
+        return redirect('login')
     if request.method == "GET":
         return render(request, 'template.html')
     elif request.method == "POST":

@@ -18,41 +18,18 @@ Including another URLconf
 
 """
 from django.contrib import admin
-from django.shortcuts import redirect
 from django.urls import path, include
-from apps.common.views import user_login, update_profile
+from apps.common.views import update_profile
 from django.contrib.auth import views as auth_views
 
-from django.views.generic import TemplateView
-# from apps.common.forms import register
-
-
-#원래 있던 urls.py 즉 login commit 하기 전거
-# from django.contrib import admin
-# from django.urls import path, include
-# from django.views.generic import TemplateView
-
-# urlpatterns = [
-#     path('', TemplateView.as_view(template_name='template.html')),
-#     path('time_table/', include('time_table.urls')),
-#     path('admin/', admin.site.urls),
-# ]
-
-#path('', HomeView.as_view(), name='home'), 이거 삭제하고 templateview넣음
 
 urlpatterns = [
 
-    path('admin/', admin.site.urls),
-    path('time_table/', include('time_table.urls'), name='time_table'),
-    path('', TemplateView.as_view(template_name='template.html')),
-    
+    path('', auth_views.LoginView.as_view(template_name='common/login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
     path('register/', update_profile, name='register'),
-    
-    path('login/', user_login, name='login'),
 
-    path('logout/', auth_views.LogoutView.as_view(
-        next_page='login'
-        ),
-        name='logout'
-    ),
+    path('time_table/', include('time_table.urls'), name='time_table'),
+
+    path('admin/', admin.site.urls),
 ]
