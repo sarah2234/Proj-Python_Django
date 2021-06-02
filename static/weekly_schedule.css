@@ -112,5 +112,12 @@ body{
 }
 
 a:hover{
-    color: #ff5722
+    color: #a03414;
+}
+
+.nav-icon{
+    margin-left: 5px;
+    color: #ff5722;
+    vertical-align: "middle";
+    width: 30px;
 }
