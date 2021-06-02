@@ -440,3 +440,23 @@ html {
 ul {
     list-style-type: none;
 }
+
+week {
+  color: white;
+}
+
+/*Â£Àº »ö: rgb(21, 126, 52)
+¿¶Àº »ö: rgb(42, 160, 78)*/
+
+thead {
+  background-color:rgb(21, 126, 52);
+}
+
+.table-bordered td, .table-bordered th {
+  border: 1px solid #dee2e6;
+}
+.table td, .table th {
+  padding: .75rem;
+  vertical-align: top;
+  border-top: 1px solid #dee2e6;
+}

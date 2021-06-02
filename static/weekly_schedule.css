@@ -102,22 +102,71 @@ body{
     font-size: 13px;
 }
 
-.table-bordered td, .table-bordered th {
-    border: 1px solid #dee2e6;
-}
-.table td, .table th {
-    padding: .75rem;
-    vertical-align: top;
-    border-top: 1px solid #dee2e6;
-}
+/*짙은 색: rgb(21, 126, 52)
+옅은 색: rgb(42, 160, 78)*/
 
 a:hover{
-    color: #a03414;
+    color: rgb(21, 126, 52);
 }
 
 .nav-icon{
     margin-left: 5px;
-    color: #ff5722;
+    color:rgb(42, 160, 78);
     vertical-align: "middle";
     width: 30px;
+}
+
+button {
+    border-radius: 10px;
+    background-color:white;
+    color:rgb(42, 160, 78);
+}
+
+button:hover {
+    color:white;
+    background-color: rgb(21, 126, 52);
+}
+
+#get-course{
+    border-radius: 10px 0px 0px 10px;
+    margin-right:-4px;
+}
+
+#add-schedule{
+    border-radius: 0px 10px 10px 0px;
+    margin-left:-3px;
+}
+
+button #logout{
+    /*display: inline;*/
+    background-color: grey;
+    color: white;
+    /*float:left;*/
+}
+
+button #logout:hover{
+    background: rgb(78, 78, 78);
+    color: white;
+}
+
+.title {
+    color: white;
+}
+
+nav .navbar,
+nav .footer-nav {
+    background-color:rgb(21, 126, 52);
+}
+
+div .sidebar {
+    width: 90% /*사이드바 아래에 스크롤이 있는데 이를 지우고자 가로 길이 줄임*/
+}
+
+#logo {
+    width: 40px;
+    vertical-align: middle;
+}
+
+.right { /*template.html에서 알림 기능*/
+    margin-left: 5px; /*추후 위치 조정할 것!!!*/
 }
