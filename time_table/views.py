@@ -573,7 +573,6 @@ def available_time(request, assignment_id):
 def schedule(request):  # 일정들 DB에서 불러와서 출력
     if request.user.id is None:
         return redirect('login')
-    print(Profile.objects.get(user=request.user).student_ID)
     now = datetime.now()
     now_date = date_list[datetime.today().weekday()]
 

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from time_table import views
 
 app_name = 'time_table'
 
