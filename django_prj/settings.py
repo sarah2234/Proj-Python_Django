@@ -32,7 +32,7 @@ DEBUG = True  # 이렇게 바꾸기 전에는 500 오류남
 if os.environ.get('DJANGO_ALLOWED_HOSTS'):
     ALLOWED_HOSTS=os.environ.get('DJANGO_ALLOWED_HOSTS').split(' ')
 else:
-    ALLOWED_HOSTS = ['https://opensourceproject03.herokuapp.com/', 'https://aha-03.herokuapp.com/']
+    ALLOWED_HOSTS = ['https://opensourceproject03.herokuapp.com/', 'http://127.0.0.1:8000/']
 
 
 # Application definition
