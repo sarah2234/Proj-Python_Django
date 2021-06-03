@@ -33,15 +33,15 @@
           <div>
               <form method="post" action="{% url 'time_table:schedule' %}">
                   {% csrf_token %}
-                  <button type="submit">돌아가기</button>
+                  <button type="submit" class="retrun button">돌아가기</button>
               </form>
           </div>
-          <div class="mb-3">
+          <div class="edit-schedule">
               <h3 class="mt-0 mb-3 text-dark op-8 font-weight-bold">
                   개인 일정 수정
               </h3>
           </div>
-          <form method="post" action="{% url 'time_table:edit_function' data.id %}">
+          <form method="post" class="edit-schedule" action="{% url 'time_table:edit_function' data.id %}">
               {% csrf_token %}
 <!--          종류는 과제로 자동지정-->
               <p>제목</p>
@@ -52,11 +52,11 @@
 <!--              날짜랑 시간 기본값을 변수로 지정하는 방법을 잘 모르겠다-->
               <p><input type="date" name="date" id="date"></p>
               <p><input type="time" name="start_h" id="start_h">부터 <input type="time" name="end_h" id="end_h">까지</p>
-              <button type="submit">일정 수정하기</button>
+              <button type="submit" class="button">일정 수정하기</button>
           </form>
           <form method="post" action="{% url 'time_table:delete_function' data.id %}">
               {% csrf_token %}
-              <button type="submit">이 일정 삭제하기</button>
+              <button type="submit" class="button">이 일정 삭제하기</button>
           </form>
       </div>
         <footer class="footer" style="position: absolute; bottom: 0; width: -webkit-fill-available;">
@@ -64,14 +64,14 @@
                 <div class="row">
                     <nav class="footer-nav">
                         <ul>
-                            <li><a href="https://www.creative-tim.com" target="_blank">Creative Tim</a></li>
-                            <li><a href="https://www.creative-tim.com/blog" target="_blank">Blog</a></li>
-                            <li><a href="https://www.creative-tim.com/license" target="_blank">Licenses</a></li>
+                            <li><a href="https://cieat.chungbuk.ac.kr/clientMain/a/t/main.do" target="_blank">CIEAT</a></li>
+                            <li><a href="https://cbnu.blackboard.com/" target="_blank">Blackboard</a></li>
+                            <li><a href="https://github.com/sarah2234/Open-Source-Project-03" target="_blank">GitHub</a></li>
                         </ul>
                     </nav>
                     <div class="credits ml-auto">
                         <span class="copyright">
-                            © 2021, made with <i class="fa fa-heart heart"></i> by Aha
+                            Made by AHA!
                         </span>
                     </div>
                 </div>

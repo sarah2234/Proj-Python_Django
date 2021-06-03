@@ -33,7 +33,7 @@
           <div>
               <form method="post" action="{% url 'time_table:schedule' %}">
                   {% csrf_token %}
-                  <button type="submit">시간표 페이지로 돌아가기</button>
+                  <button type="submit" class="button">시간표 페이지로 돌아가기</button>
               </form>
           </div>
           <div class="mb-3">
@@ -50,7 +50,7 @@
                   {% csrf_token %}
                   <p>과제 하는데 필요한 시간</p>
                   <p><input type="number" min="0" max="24" step="1" name="need_time" id="need_time"></p>
-                  <button type="submit">추천 일정 생성하기</button>
+                  <button type="submit" class="button">추천 일정 생성하기</button>
               </form>
           </div>
       </div>
@@ -59,14 +59,14 @@
                 <div class="row">
                     <nav class="footer-nav">
                         <ul>
-                            <li><a href="https://www.creative-tim.com" target="_blank">Creative Tim</a></li>
-                            <li><a href="https://www.creative-tim.com/blog" target="_blank">Blog</a></li>
-                            <li><a href="https://www.creative-tim.com/license" target="_blank">Licenses</a></li>
+                            <li><a href="https://cieat.chungbuk.ac.kr/clientMain/a/t/main.do" target="_blank">CIEAT</a></li>
+                            <li><a href="https://cbnu.blackboard.com/" target="_blank">Blackboard</a></li>
+                            <li><a href="https://github.com/sarah2234/Open-Source-Project-03" target="_blank">GitHub</a></li>
                         </ul>
                     </nav>
                     <div class="credits ml-auto">
                         <span class="copyright">
-                            © 2021, made with <i class="fa fa-heart heart"></i> by Aha
+                            Made by AHA!
                         </span>
                     </div>
                 </div>

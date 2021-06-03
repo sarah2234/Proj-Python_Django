@@ -33,15 +33,15 @@
           <div>
               <form method="post" action="{% url 'time_table:schedule' %}">
                   {% csrf_token %}
-                  <button type="submit">시간표 페이지로 돌아가기</button>
+                  <button type="submit" class="button">시간표 페이지로 돌아가기</button>
               </form>
           </div>
-          <div class="mb-3">
-              <h3 class="mt-0 mb-3 text-dark op-8 font-weight-bold">
+          <div >
+              <h3 style="margin-left:750px" >
                   일정 추가
               </h3>
           </div>
-          <div>
+          <div style="text-align:center">
               <form method="post" action="{% url 'time_table:add_function' %}">
                   {% csrf_token %}
 <!--                  종류는 개인일정로 자동지정-->
@@ -53,7 +53,7 @@
                   <p><input type="date" name="date" id="date"></p>
                   <p><input type="time" name="start_h" id="start_h">부터 <input type="time" name="end_h" id="end_h">까지</p>
 
-                  <button type="submit">일정 추가하기</button>
+                  <button type="submit" class="add-schedule button">일정 추가하기</button>
               </form>
           </div>
 
@@ -63,14 +63,14 @@
                 <div class="row">
                     <nav class="footer-nav">
                         <ul>
-                            <li><a href="https://www.creative-tim.com" target="_blank">Creative Tim</a></li>
-                            <li><a href="https://www.creative-tim.com/blog" target="_blank">Blog</a></li>
-                            <li><a href="https://www.creative-tim.com/license" target="_blank">Licenses</a></li>
+                            <li><a href="https://cieat.chungbuk.ac.kr/clientMain/a/t/main.do" target="_blank">CIEAT</a></li>
+                            <li><a href="https://cbnu.blackboard.com/" target="_blank">Blackboard</a></li>
+                            <li><a href="https://github.com/sarah2234/Open-Source-Project-03" target="_blank">GitHub</a></li>
                         </ul>
                     </nav>
                     <div class="credits ml-auto">
                         <span class="copyright">
-                            © 2021, made with <i class="fa fa-heart heart"></i> by Aha
+                            Made by AHA!
                         </span>
                     </div>
                 </div>
