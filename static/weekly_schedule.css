@@ -102,31 +102,12 @@ body{
     font-size: 13px;
 }
 
-/*Â£ï¿½ï¿½ ï¿½ï¿½: rgb(21, 126, 52)
-ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½: rgb(42, 160, 78)*/
-
-a:hover{
-    color: rgb(21, 126, 52);
-}
 
 .nav-icon{
     margin-left: 5px;
-    color:rgb(42, 160, 78);
-    vertical-align: "middle";
     width: 30px;
 }
 
-button {
-    border-radius: 10px;
-    background-color:white;
-    color:rgb(42, 160, 78);
-    float: left;
-}
-
-button:hover {
-    color:white;
-    background-color: rgb(21, 126, 52);
-}
 
 #get-course{
     border-radius: 10px 0px 0px 10px;
@@ -138,17 +119,15 @@ button:hover {
     margin-left:-3px;
 }
 
-button #logout{
-    /*display: inline;*/
+/*button #logout{
     background-color: grey;
     color: white;
-    /*float:left;*/
 }
 
 button #logout:hover{
     background: rgb(78, 78, 78);
     color: white;
-}
+}*/
 
 .footer {
     color: black;
@@ -165,6 +144,38 @@ button #logout:hover{
     width: 30px;
 }
 
-.right { /*template.htmlï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½ ï¿½ï¿½ï¿½*/
-    margin-left: 5px; /*ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½!!!*/
+.right { /*template.html¿¡¼­ ¾Ë¸² ±â´É*/
+    margin-left: 5px; /*ÃßÈÄ À§Ä¡ Á¶Á¤ÇÒ °Í!!!*/
+}
+
+td .bg-light-gray{
+    width:60px;
+}
+
+.icon-detail {
+    vertical-align: middle;
+}
+
+.edit-schedule {
+    vertical-align: center;
+}
+
+.return {
+    vertical-align: top;
+}
+
+.add-schedule{
+    vertical-align:bottom;
+}
+
+.button {
+    border-radius: 10px;
+    background-color:rgb(92, 243, 150);
+    float: left;
+    border:0px;
+}
+
+.button:hover {
+    background-color: white;
+    color: rgb(92, 243, 150);
 }

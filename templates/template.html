@@ -63,19 +63,19 @@
           <li class="active ">
             <a href="{% url 'time_table:schedule' %}">
               <img src= "/static/icon/schedule.png" class="nav-icon" alt="SCHEDULE">
-              <p>시간표</p>
+              <p class="icon-detail">시간표</p>
             </a>
           </li>
           <li>
             <a href="{% url 'time_table:cieat_interest' %}">
               <img src="/static/icon/sprout.png" class="nav-icon" alt="CIEAT">
-              <p>씨앗</p>
+              <p class="icon-detail">씨앗</p>
             </a>
           </li>
           <li>
             <a href="{% url 'time_table:setting' %}">
               <img src="/static/icon/setting.png" class="nav-icon" alt="SETTING">
-              <p>환경설정</p>
+              <p class="icon-detail">환경설정</p>
             </a>
           </li>
         </ul>
@@ -87,7 +87,7 @@
         <div class="container-fluid">
           <div class="navbar-wrapper">
             <div class="navbar-toggle">
-              <button type="button" class="navbar-toggler">
+              <button type="button" class="navbar-toggler button">
                 <span class="navbar-toggler-bar bar1"></span>
                 <span class="navbar-toggler-bar bar2"></span>
                 <span class="navbar-toggler-bar bar3"></span>
@@ -95,9 +95,7 @@
             </div>
             <div>
               <img src="/static/icon/book.png" id="logo" alt="LOGO">
-              <a class="navbar title" href="javascript:;">
-                <h5 class="planner">대학생 학습 도우미</h5>
-              </a>
+              <a class="navbar title" href="javascript:;">대학생 학습 도우미</a>
             </div>
           </div>
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
@@ -108,7 +106,7 @@
           <div class="collapse navbar-collapse justify-content-end" id="navigation"> <!--기존에 있었던 검색 기능+알람 기능 삭제-->
             <form method="post" action="{% url 'logout' %}">
               {% csrf_token %}
-              <button type="submit" id="logout">로그아웃</button>
+              <button type="submit" class="button" id="logout">로그아웃</button>
             </form>
           </div>
         </div>
@@ -177,12 +175,12 @@
                   <div>
                       <form method="post" action="{% url 'time_table:crawling' %}">
                           {% csrf_token %}
-                          <button type="submit" id="get-course">과제 읽어오기</button>
+                          <button type="submit" id="get-course" class="button">과제 읽어오기</button>
                       </form>
 <!--              일정 추가하는 버튼-->
                       <form method="post" action="{% url 'time_table:add_schedule' %}">
                           {% csrf_token %}
-                          <button type="submit" id="add-schedule">일정 추가</button>
+                          <button type="submit" id="add-schedule" class="button">일정 추가</button>
                       </form>
                   </div>
               </div>
