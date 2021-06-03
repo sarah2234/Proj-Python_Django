@@ -32,6 +32,7 @@ options.add_argument('--incognito')
 options.add_argument('--headless')
 options.add_argument('--start-fullscreen')
 options.add_argument('--no-sandbox')
+options.add_argument('--disable-dev-shm-usage')
 options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 
 # chrome driver를 불러오고 위의 option을 적용시킴
