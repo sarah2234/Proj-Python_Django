@@ -151,8 +151,7 @@ button #logout:hover{
 }
 
 .footer {
-    background-color:rgb(64, 177, 98);
-    color: white;
+    color: black;
     float: left;
 }
 
