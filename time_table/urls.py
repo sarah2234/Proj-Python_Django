@@ -8,6 +8,8 @@ urlpatterns = [
     path('', views.schedule, name='schedule'),
     path('crawling/', views.crawling, name='crawling'),
 
+    path('zoom_link/<int:data_id>', views.zoom_link, name='zoom_link'),
+
     path('add_schedule', views.add_schedule, name='add_schedule'),
     path('add_schedule/add', views.add_function, name='add_function'),
 

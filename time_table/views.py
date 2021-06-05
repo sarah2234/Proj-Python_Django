@@ -610,28 +610,20 @@ def schedule(request):  # 일정들 DB에서 불러와서 출력
     context = {'now': now, 'date': now_date, 'today_list': today_list,
                'time_table': time_table, 'data_list': data_list, 'today_e': today_e}
 
-# ---------------- link to zoom ------------------------
-#   과목 시작 시간과 현재 시간을 비교해서 실행
-    today_schedule = Data.objects.filter(sort='시간표', content=now_date, end_h__gt=now.hour, user=request.user)
-    if today_schedule:
-        lecture_info = today_schedule[0]  # 첫번째 강의
-        # 시작 시간 2분 전일 때 줌 링크 연결
-        if lecture_info.start_h - 1 == now.hour and now.minute == 58:
-            zoom_link(request.user, lecture_info.context)
-
     return render(request, 'template.html', context)
 
 
-def zoom_link(user, current_lecture):  # 해당 과목 내 공지 사항으로 들어가서 링크 받음
+def zoom_link(request, data_id):  # 해당 과목 내 공지 사항으로 들어가서 링크 받음
 
+    current_lecture = Data.objects.get(sort="시간표", id=data_id).context
     driver.get('https://cbnu.blackboard.com/')
     # 가끔씩 학번이랑 비밀번호를 홈페이지에 입력하지 못하고 오류가 발생하는 경우가 있어서 추가.
     try:
         element = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.NAME, "uid")))
         # 로그인 되어있지 않는 경우 로그인
-        driver.find_element_by_name('uid').send_keys(Profile.objects.get(user=user).student_ID)  # 학번
-        driver.find_element_by_name('pswd').send_keys(Profile.objects.get(user=user).CBNU_PW)  # Blackboard 비밀번호
+        driver.find_element_by_name('uid').send_keys(Profile.objects.get(user=request.user).student_ID)  # 학번
+        driver.find_element_by_name('pswd').send_keys(Profile.objects.get(user=request.user).CBNU_PW)  # Blackboard 비밀번호
         driver.find_element_by_xpath('//*[@id="entry-login"]').click()
     except TimeoutException:
         print('로그인상태')
@@ -669,9 +661,10 @@ def zoom_link(user, current_lecture):  # 해당 과목 내 공지 사항으로 �
 
         if num == 19:  # 모두 탐색 완료
             print("해당 교과목이 존재하지 않습니다.")
-            return
+            return redirect('time_table:schedule')
 
 # 과목 발견 후
+    print("과목발견")
     try:
         course = WebDriverWait(driver, 20).until(
             EC.presence_of_element_located((By.NAME, 'classic-learn-iframe')))
@@ -706,7 +699,7 @@ def zoom_link(user, current_lecture):  # 해당 과목 내 공지 사항으로 �
             course = driver.find_element_by_partial_link_text('zoom.us')  # 줌 링크가 있는 요소 발견
             print("줌링크발견")
             go_to_zoom(course.text.strip())  # 줌 실행 화면을 창을 띄워서 보여주기 위함
-            return  # driver 설정이 다른 파일이 해당 링크를 입력받기
+            return redirect('time_table:schedule') # driver 설정이 다른 파일이 해당 링크를 입력받기
             # coure.click()를 쓰지 않고 새 탭에서 여는 방식을 채택한 이유: 줌 링크를 열면 어떤 사람은 'zoom meetings를 여시겠습니까'가 뜸.
             # '항상 zoom.us에서 연결된 앱에 있는 이 유형의 링크를 열도록 허용' 체크박스를 표시 안 하면 생기는데, 이거는 웹의 요소가 아니라서 웹크롤링으로 해결할 수 없음.
 
@@ -718,6 +711,7 @@ def zoom_link(user, current_lecture):  # 해당 과목 내 공지 사항으로 �
 
         if num == 19:
             print("줌 링크가 존재하지 않습니다.")
+            return redirect('time_table:schedule')
 
 
 def go_to_zoom(link_text):

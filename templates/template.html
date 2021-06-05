@@ -201,9 +201,10 @@
                                   {% if forloop.counter == 1 %}
 <!--                                  data sort(시간표, 개인일정, 과제)에 맞는 형식으로 출력-->
                                       {% if data.sort == '시간표' %}
+                                      <a href="{% url 'time_table:zoom_link' data.id %}">
                                           <li class="list-timeline-item show p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column" data-toggle="collapse" data-target="#day-1-item-2">
                                               <p class="my-0 text-dark flex-fw text-sm text-uppercase">
-        <!--                                      span class="text-primary" 글자색 파란색으로 강조-->
+            <!--                                  span class="text-primary" 글자색 파란색으로 강조-->
                                                   <span class="text-primary font-weight-bold op-8 infinite animated flash" data-animate="flash" data-animate-infinite="1"
                                                         data-animate-duration="3.5" style="animation-duration: 3.5s;">
                                                       {{ data.start_h }}:00 ~ {{ data.end_h }}:00
@@ -211,6 +212,7 @@
                                               </p>
                                               <span class="text-primary">{{ data.context }} - {{ data.name }}교수님</span>
                                           </li>
+                                      </a>
                                       {% elif data.sort == '개인일정' %}
                                       <a href="{% url 'time_table:edit_schedule' data.id %}">
                                           <li class="list-timeline-item show p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column" data-toggle="collapse" data-target="#day-1-item-2">
@@ -228,12 +230,14 @@
                                       {% endif %}
                                   {% else %}
                                       {% if data.sort == '시간표' %}
-                                      <li class="list-timeline-item p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column">
-                                          <p class="my-0 text-dark flex-fw text-sm text-uppercase">
-                                              <span class="text-inverse font-weight-bold op-8">{{ data.start_h }}:00 ~ {{ data.end_h }}:00</span>
-                                          </p>
-                                          <span class="text-inverse op-8">{{ data.context }} - {{ data.name }}교수님</span>
-                                      </li>
+                                      <a href="{% url 'time_table:zoom_link' data.id %}">
+                                          <li class="list-timeline-item p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column">
+                                              <p class="my-0 text-dark flex-fw text-sm text-uppercase">
+                                                  <span class="text-inverse font-weight-bold op-8">{{ data.start_h }}:00 ~ {{ data.end_h }}:00</span>
+                                              </p>
+                                              <span class="text-inverse op-8">{{ data.context }} - {{ data.name }}교수님</span>
+                                          </li>
+                                      </a>
                                       {% elif data.sort == '개인일정' %}
                                       <a href="{% url 'time_table:edit_schedule' data.id %}">
                                           <li class="list-timeline-item p-0 pb-3 pb-lg-4 d-flex flex-wrap flex-column">
