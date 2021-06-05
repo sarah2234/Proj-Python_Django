@@ -445,11 +445,8 @@ week {
   color: white;
 }
 
-/*Â£Àº »ö: rgb(21, 126, 52)
-¿¶Àº »ö: rgb(42, 160, 78)*/
-
-thead {
-  background-color:rgb(21, 126, 52);
+.thead {
+  background-color:rgb(167, 229, 248);
 }
 
 .table-bordered td, .table-bordered th {
