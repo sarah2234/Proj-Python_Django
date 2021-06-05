@@ -102,7 +102,6 @@ body{
     font-size: 13px;
 }
 
-
 .nav-icon{
     margin-left: 5px;
     width: 30px;
@@ -144,8 +143,8 @@ button #logout:hover{
     width: 30px;
 }
 
-.right { /*template.html에서 알림 기능*/
-    margin-left: 5px; /*추후 위치 조정할 것!!!*/
+.right {
+    margin-left: 5px;
 }
 
 td .bg-light-gray{
@@ -168,14 +167,83 @@ td .bg-light-gray{
     vertical-align:bottom;
 }
 
-.button {
+/* blue: dark-rgb(27, 125, 155)
+bright-rgb(167, 229, 248)*/
+
+/* yellow: dark-rgb(190, 132, 23)
+bright-rgb(247, 227, 138)*/
+
+/*.button {
     border-radius: 10px;
-    background-color:rgb(92, 243, 150);
+    background-color:rgb(167, 229, 248);
     float: left;
     border:0px;
 }
 
 .button:hover {
     background-color: white;
-    color: rgb(92, 243, 150);
+    color: black;
+}*/
+
+.schedule-thead {
+    background-color: rgb(27, 179, 166);
+}
+
+.cieat-tr{
+    background-color: rgb(27, 179, 166);
+}
+
+button{
+  background:rgb(27, 179, 166);
+  color:#fff;
+  border:none;
+  cursor:pointer;
+  transition:800ms ease all;
+  outline:none;
+  float: left;
+  padding:0 2em;
+  border-radius:10px;
+}
+button:hover{
+  background:#fff;
+  color:rgb(27, 179, 166);
+  border-radius:10px;
+}
+button:before,button:after{
+  content:'';
+  top:0;
+  right:0;
+  height:2px;
+  width:0;
+  background: rgb(36, 201, 187);
+  transition:400ms ease all;
+  position: relative;
+  float: left;
+  border-radius:10px;
+}
+button:after{
+  right:inherit;
+  top:inherit;
+  left:0;
+  bottom:0;
+  border-radius:10px;
+}
+button:hover:before,button:hover:after{
+  width: 0%;
+  transition:800ms ease all;
+}
+
+#logout {
+    background-color: rgb(83, 83, 83);
+    border-radius:10px;
+}
+
+#logout:hover{
+    color:rgb(83, 83, 83);
+    background-color: white;
+}
+
+.choosing-timetable {
+    border-radius:10px;
+    margin-top:10px;
 }
