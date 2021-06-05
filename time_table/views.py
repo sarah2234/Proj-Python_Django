@@ -37,7 +37,7 @@ options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 
 # chrome driver를 불러오고 위의 option을 적용시킴
 # CHROMEDRIVER_PATH 환경 변수에 개발하면서 사용할 본인 컴퓨터 안의 chromedrive 경로 저장
-#os.environ["CHROMEDRIVER_PATH"] = '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe'
+os.environ["CHROMEDRIVER_PATH"] = '/Users/chisanahn/Desktop/Python_Project/chromedriver.exe'
 driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=options)
 
 date_list = ['월', '화', '수', '목', '금', '토', '일']
@@ -305,7 +305,7 @@ def choose_timetable(request):
         return redirect('time_table:choose_timetable')
     elif request.method == "POST":
         for data in request.POST.getlist('delete_data'):
-            Data.objects.filter(id=data).delete()
+            Data.objects.filter(id=data, user=request.user).delete()
     return redirect('time_table:schedule')
 
 
