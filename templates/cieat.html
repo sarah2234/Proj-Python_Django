@@ -69,7 +69,7 @@
           <div class="container-fluid">
             <div class="navbar-wrapper">
               <div class="navbar-toggle">
-                <button type="button" class="navbar-toggler">
+                <button type="button" class="navbar-toggler button">
                   <span class="navbar-toggler-bar bar1"></span>
                   <span class="navbar-toggler-bar bar2"></span>
                   <span class="navbar-toggler-bar bar3"></span>
@@ -78,7 +78,7 @@
               <img src="/static/icon/book.png" id="logo" alt="LOGO">
               <a class="navbar title" href="javascript:;">대학생 학습 도우미</a>
           </div>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
+          <button class="navbar-toggler button" type="button" data-toggle="collapse" data-target="#navigation" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-bar navbar-kebab"></span>
             <span class="navbar-toggler-bar navbar-kebab"></span>
             <span class="navbar-toggler-bar navbar-kebab"></span>
@@ -86,7 +86,7 @@
           <div class="collapse navbar-collapse justify-content-end" id="navigation"> <!--기존에 있었던 검색 기능+알람 기능 삭제-->
             <form method="post" action="{% url 'logout' %}">
               {% csrf_token %}
-              <button type="submit" id="logout">로그아웃</button>
+              <button type="submit" class="button" id="logout" style="border-radius:10px">로그아웃</button>
             </form>
             </div>
           </div>
@@ -101,21 +101,24 @@
                     {% csrf_token %}
                     <p>키워드 검색 (아무것도 입력하지 않을시 학과명으로만 검색)</p>
                     <p><input type="text" name="keyword" id="keyword"></p>
-                    <button type="submit">관심분야 읽어오기</button>
+                    <button type="submit" class="button" style="border-radius:10px">관심분야 읽어오기</button>
                 </form>
             </div>
             <form method="post" action="{% url 'time_table:cieat_submit' %}">
                 {% csrf_token %}
-                <div style="overflow:auto; height: 65vh;">
-                    <table class="table table-striped">
+                <div style="margin-bottom:100px">
+                    <table class="table table-striped" style="margin-top:50px">
                         <thead>
-                        <tr>
+                        <tr >
                             <th>비교과 활동</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr>
-                            <td>활동명</td><td>모집기간</td><td>활동기간</td><td>운영부서</td>
+                        <tr class="cieat-tr">
+                            <td class="cieat-tr-top">활동명</td>
+                            <td class="cieat-tr-top">모집기간</td>
+                            <td class="cieat-tr-top">활동기간</td>
+                            <td class="cieat-tr-top">운영부서</td>
                         </tr>
                         {% for activity in activity_list %}
                         <tr>
@@ -128,7 +131,7 @@
                         </tbody>
                     </table>
                 </div>
-                <button type="submit">신청하기</button>
+                <button type="submit" class="button" style="border-radius:10px">신청하기</button>
             </form>
         </div>
           <footer class="footer" style="position: absolute; bottom: 0; width: -webkit-fill-available;">

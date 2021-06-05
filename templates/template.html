@@ -175,12 +175,12 @@
                   <div>
                       <form method="post" action="{% url 'time_table:crawling' %}">
                           {% csrf_token %}
-                          <button type="submit" id="get-course" class="button">과제 읽어오기</button>
+                          <button type="submit" id="get-course" class="button-2">과제 읽어오기</button>
                       </form>
 <!--              일정 추가하는 버튼-->
                       <form method="post" action="{% url 'time_table:add_schedule' %}">
                           {% csrf_token %}
-                          <button type="submit" id="add-schedule" class="button">일정 추가</button>
+                          <button type="submit" id="add-schedule" class="button-2">일정 추가</button>
                       </form>
                   </div>
               </div>
@@ -283,7 +283,7 @@
                                       </a>
                                       <form method="post" action="{% url 'time_table:delete_assignment' data.id %}">
                                           {% csrf_token %}
-                                          <button type="submit">과제 끝!</button>
+                                          <button type="submit" class="button" style="border-radius:10px">과제 끝!</button>
                                       </form>
                                   </li>
                                   {% endif %}
@@ -303,7 +303,7 @@
                                       </a>
                                       <form method="post" action="{% url 'time_table:delete_assignment' data.id %}">
                                           {% csrf_token %}
-                                          <button type="submit">과제 끝!</button>
+                                          <button type="submit" class="button" style="border-radius:10px">과제 끝!</button>
                                       </form>
                                   </li>
                                   {% endif %}

@@ -70,7 +70,7 @@
         <div class="container-fluid">
           <div class="navbar-wrapper">
             <div class="navbar-toggle">
-              <button type="button" class="navbar-toggler">
+              <button type="button" class="navbar-toggler button">
                 <span class="navbar-toggler-bar bar1"></span>
                 <span class="navbar-toggler-bar bar2"></span>
                 <span class="navbar-toggler-bar bar3"></span>
@@ -79,7 +79,7 @@
             <img src="/static/icon/book.png" id="logo" alt="LOGO">
               <a class="navbar title" href="javascript:;">대학생 학습 도우미</a>
           </div>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
+          <button class="navbar-toggler button" type="button" data-toggle="collapse" data-target="#navigation" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-bar navbar-kebab"></span>
             <span class="navbar-toggler-bar navbar-kebab"></span>
             <span class="navbar-toggler-bar navbar-kebab"></span>
@@ -87,7 +87,7 @@
           <div class="collapse navbar-collapse justify-content-end" id="navigation"> <!--기존에 있었던 검색 기능+알람 기능 삭제-->
             <form method="post" action="{% url 'logout' %}">
               {% csrf_token %}
-              <button type="submit" id="logout">로그아웃</button>
+              <button type="submit" class="button" id="logout" style="border-radius:10px">로그아웃</button>
             </form>
           </div>
         </div>
@@ -103,7 +103,7 @@
                   <div>
                       <form method="post" action="{% url 'time_table:load_timetable' %}">
                           {% csrf_token %}
-                          <button type="submit">시간표 읽어오기</button>
+                          <button type="submit" class="button" style="border-radius:10px">시간표 읽어오기</button>
                       </form>
                   </div>
               </div>

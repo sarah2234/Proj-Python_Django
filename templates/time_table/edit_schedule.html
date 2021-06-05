@@ -33,7 +33,7 @@
           <div>
               <form method="post" action="{% url 'time_table:schedule' %}">
                   {% csrf_token %}
-                  <button type="submit" class="retrun button">돌아가기</button>
+                  <button type="submit" class="retrun button" style="border-radius:10px">돌아가기</button>
               </form>
           </div>
           <div class="edit-schedule">
@@ -52,11 +52,11 @@
 <!--              날짜랑 시간 기본값을 변수로 지정하는 방법을 잘 모르겠다-->
               <p><input type="date" name="date" id="date"></p>
               <p><input type="time" name="start_h" id="start_h">부터 <input type="time" name="end_h" id="end_h">까지</p>
-              <button type="submit" class="button">일정 수정하기</button>
+              <button type="submit" class="button" style="border-radius:10px">일정 수정하기</button>
           </form>
           <form method="post" action="{% url 'time_table:delete_function' data.id %}">
               {% csrf_token %}
-              <button type="submit" class="button">이 일정 삭제하기</button>
+              <button type="submit" class="button" style="border-radius:10px">이 일정 삭제하기</button>
           </form>
       </div>
         <footer class="footer" style="position: absolute; bottom: 0; width: -webkit-fill-available;">

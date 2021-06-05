@@ -39,7 +39,7 @@
             {% csrf_token %}
             <div style="overflow:auto; height: 65vh;">
               <table class="table table-striped">
-                  <thead>
+                  <thead class="schedule-thead">
                   <tr>
                       <th>과목</th><th>교수님</th><th>수업시간</th>
                   </tr>
@@ -55,7 +55,7 @@
                   </tbody>
               </table>
             </div>
-            <button type="submit" class="button">선택완료</button>
+            <button type="submit" class="button choosing-timetable">선택완료</button>
         </form>
         {% endif %}
         <footer class="footer" style="position: absolute; bottom: 0; width: -webkit-fill-available;">
