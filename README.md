@@ -1,4 +1,5 @@
-Heroku Link(온라인 서버): https://opensourceproject03.herokuapp.com
+Study Management Web Application for University Students
+https://opensourceproject03.herokuapp.com
 ======
 ------
 개발 환경 초기 설정&도움말
